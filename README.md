@@ -1,6 +1,6 @@
-# TWRP-DualBoot-Guac-Unified
+# TWRP-DualBoot-fajita
 
-Modified TWRP (Mauronofrio's build) and installer script for all OP7/Pro/5G variants that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications
+Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6t series that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications
 
 ## Disclaimer
 * I am not responsible for anything bad that happens to your device. Only experienced users should be using this mod
@@ -114,31 +114,9 @@ Take note of the **number** (I'll call *userdata_num* for the sake of this tutor
 * Run `sgdisk /dev/block/sda --print` again to make sure everything is correct and then reboot back into twrp
 
 ## Changelog
-* 03/29/2020 - 3.3.1-79 v4
-  * Add mount all option for datacommon mounts.txt
-  * Redid how commondata was mounted - fixed issues with lots of roms like AOSPA
-    * Magisk made optional for commondata - it is still needed for some roms though (like oos)
-  * Made other vars slot selectable
-  * Storage size detection fix
-  * Misc fixes/improvements
-  * Updated to magisk 20.4
 
-* 03/23/2020 - 3.3.1-79 v3
-  * Put back needed binaries - mke2fs in busybox isn't sufficient - fixes errors some users were having
-  * Allow flashing zip from data if not repartitioning/formatting
-
-* 03/20/2020 - 3.3.1-79 v2
-  * Changed datacommon mounting script to be more granular - user chooses what folders are mounted directly over internal storage
-  * Added f2fs format option - can choose format type for each slot
-  * Added more options for common data partition sizing
-  * Formerly investigated lockscreen issue - unfixable - see Limitations section for workaround
-
-* 03/14/2020 - 3.3.1-79
-  * Initial Release
-
-## Support Links
-* [XDA](https://forum.xda-developers.com/oneplus-7/oneplus-7--7-pro-cross-device-development/recovery-unofficial-twrp-oneplus-7-7-t4066851)
-* [Telegram](https://t.me/joinchat/DjoQI1H7LYFgKqw_kAZVvg)
+* 10/06/2020 - 3.4.0.0 v1
+  * Initial Release v1 modified Dualboot TWRP for the Oneplus 6t
 
 ## Credits
 
@@ -146,6 +124,7 @@ Take note of the **number** (I'll call *userdata_num* for the sake of this tutor
 * [Mauronofrio](https://github.com/mauronofrio/android_device_oneplus_guacamole_unified_TWRP)
 * [CosmicDan](https://github.com/CosmicDan-Android/android_system_update_engine_tissotmanager-mod)
 * [TopJohnWu](https://github.com/topjohnwu/Magisk)
+* [Zackptg5] (https://github.com/Zackptg5/TWRP-DualBoot-Guac-Unified)
 
 ## License
 
