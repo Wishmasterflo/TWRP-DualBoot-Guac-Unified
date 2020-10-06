@@ -34,8 +34,8 @@ $BOOTMODE && abort "! Flash in TWRP - use img by mauronofrio if first install!"
 ui_print "###########################################"
 ui_print "#         TWRP + Magisk Installer         #"
 ui_print "#          with a/b userdata for          #"
-ui_print "#        OnePlus 7/7 Pro/7 Pro 5G         #"
-ui_print "#               by Zackptg5               #"
+ui_print "#              OnePlus 6t                 #"
+ui_print "#            by Wishmasterflo             #"
 ui_print "###########################################"
 ui_print "#        TWRP build by Mauronofrio        #"
 ui_print "###########################################"
@@ -62,7 +62,7 @@ cd $tmp
 # Device check
 supported=false
 ui_print "- Checking device compatibility"
-for i in OnePlus7Pro guacamole OnePlus7 guacamoleb OnePlus7ProTMO guacamolet OP7ProNRSpr guacamoles; do
+for i in OnePlus6t fajita; do
   for prop in "ro.product.device" "ro.build.product" "ro.product.vendor.device" "ro.vendor.product.device" "ro.omni.device"; do
     if [ "$(getprop $prop)" == "$i" ]; then
       ui_print "  Supported Device Detected!"

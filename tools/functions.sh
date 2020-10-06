@@ -75,10 +75,10 @@ change_part() {
       local partname="$(sgdisk --print /dev/block/sda | grep "^ *$partnum" | awk '{gsub("_.*","",$7); print $7}' 2>/dev/null)"
       [ -z "$partname" ] && abort "Formatting error!"
       if [ "$parttype" == "f2fs" ]; then
-        mkfs.f2fs -d1 -f -O encrypt -O quota -O verity -w 4096 /dev/block/sda$partnum $partsize || abort "Formatting error!"
+        mkfs.f2fs -d1 -f -O encrypt -O quota -O verity -w 4096 /dev/block/sda$partnum $partsize
         [ "$partname" == "metadata" ] && sload.f2fs -t /metadata /dev/block/sda$partnum || sload.f2fs -t /data /dev/block/sda$partnum
       else
-        mke2fs -F -F -t ext4 -b 4096 /dev/block/sda$partnum $partsize || abort "Formatting error!"
+        mke2fs -F -F -t ext4 -b 4096 /dev/block/sda$partnum $partsize
         [ "$partname" == "metadata" ] && e2fsdroid -e -S /file_contexts -a /metadata /dev/block/sda$partnum || e2fsdroid -e -S /file_contexts -a /data /dev/block/sda$partnum
       fi
       ;;

@@ -1,5 +1,3 @@
-## Deprecated - I don't have a oneplus 7 series phone anymore and so won't be updating this. Feel free to fork and modify/update - just be careful with the repartitioning (This was tested for Android Q, things may be different for 11)
-
 # TWRP-DualBoot-Guac-Unified
 
 Modified TWRP (Mauronofrio's build) and installer script for all OP7/Pro/5G variants that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications
@@ -10,21 +8,19 @@ Modified TWRP (Mauronofrio's build) and installer script for all OP7/Pro/5G vari
 Make sure you have a backup and know how to reparititon your phone back to stock (there's a guide at the end of this readme with the basics)
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
-## Limitations
+## Limitation
 * If you set a password, regardless of encryption status, it'll corrupt the other slot if it's also password protected. 
-  * Note that some roms set one automatically
-    Either don't use a password on one slot, or leave one slot (I'll use 'a' in this example) **unencrypted** and:
-    * Setup rom, password, and everything on slot a
-    * Boot back into twrp, choose common data as storage, and backup userdata (if not using a/b/c layout, backup TWRP folder to your computer)
-    * Setup rom, password, and everything on the other slot (b)
-    * Boot back into twrp, switch back to slot a (reboot back into twrp), and restore the twrp backup
-  * If you messed this up and are unencrypted - delete these files in /data/system if present: locksettings.db gatekeeper.password.key password.key gatekeeper.pattern.key pattern.key gatekeeper.gesture.key gesture.key
-  * If you messed this up and are encrypted - you lost the data on that slot:
-    * Unmount metadata in twrp gui
-    * Format metadata with this command: `mke2fs -t ext4 -b 4096 /dev/block/sda$metadata_partnum` where *metadata_partnum* is the partition number of the current metadata partition (you can find this with `sgdisk /dev/block/sda --print`). DO NOT FORGET THE PARTITION NUMBER. If you do, you'll format all of sda which results in a brick
-    * Reboot into twrp and format data in gui
-* Storage settings only supports 128 and 256gb userdata partitions
-  * Just a cosmetic issue as it'll say that system is taking up the difference
+* Note that some roms set one automatically
+Either don't use a password on one slot, or leave one slot (I'll use 'a' in this example) **unencrypted** and:
+  * Setup rom, password, and everything on slot a
+  * Boot back into twrp, choose common data as storage, and backup userdata (if not using a/b/c layout, backup TWRP folder to your computer)
+  * Setup rom, password, and everything on the other slot (b)
+  * Boot back into twrp, switch back to slot a (reboot back into twrp), and restore the twrp backup
+* If you messed this up and are unencrypted - delete these files in /data/system if present: locksettings.db gatekeeper.password.key password.key gatekeeper.pattern.key pattern.key gatekeeper.gesture.key gesture.key
+* If you messed this up and are encrypted - you lost the data on that slot:
+  * Unmount metadata in twrp gui
+  * Format metadata with this command: `mke2fs -t ext4 -b 4096 /dev/block/sda$metadata_partnum` where *metadata_partnum* is the partition number of the current metadata partition (you can find this with `sgdisk /dev/block/sda --print`). DO NOT FORGET THE PARTITION NUMBER. If you do, you'll format all of sda which results in a brick
+  * Reboot into twrp and format data in gui
 
 ## Some other features/notes
 * Can choose between stock layout, a/b userdata, or a/b/c userdata where 'c' is a common data partition that'll show up in both roms - it's quite handy
