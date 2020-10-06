@@ -16,6 +16,12 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 Make sure you have a backup and know how to reparititon your phone back to stock (there's a guide at the end of this readme with the basics)
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
+## Issues right now
+* The mounting of the Commondata is not yet working from within the ROMs/slots (only in TWRP right now).
+* When flashing a Android 11 ROM in one of the slots and then flash this Dualboot-TWRP it will get stuck while patching that slot.
+  Seems to be an issue with patching the fstab on a slot with Android 11 installed.
+* Formatting the created partitions for Dualboot was nt working automatically as of now and need some manual formatting of the partitions.
+
 ## Limitation
 * If you set a password, regardless of encryption status, it'll corrupt the other slot if it's also password protected. 
 * Note that some roms set one automatically
@@ -60,7 +66,7 @@ Either don't use a password on one slot, or leave one slot (I'll use 'a' in this
       ```
 
 ## Flashing Instructions
-* You MUST be booted into TWRP already when flashing this zip ([you can grab a bootable twrp image from here](https://forum.xda-developers.com/oneplus-7/oneplus-7--7-pro-cross-device-development/recovery-unofficial-twrp-recovery-t3932943))
+* You MUST be booted into TWRP already when flashing this zip.
 * Since this modifies data - the zip CANNOT be on sdcard or data at all UNLESS you do not want to repartition/format
   * If you flash from data, the zip will copy itself to /tmp and instruct you to flash it from there OR you can just install twrp/magisk/disver-fec
   * You could do the above or copy it to a place like /dev or /tmp and flash it from there
