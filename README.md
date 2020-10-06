@@ -124,7 +124,7 @@ Take note of the **number** (I'll call *userdata_num* for the sake of this tutor
 * [Mauronofrio](https://github.com/mauronofrio/android_device_oneplus_guacamole_unified_TWRP)
 * [CosmicDan](https://github.com/CosmicDan-Android/android_system_update_engine_tissotmanager-mod)
 * [TopJohnWu](https://github.com/topjohnwu/Magisk)
-* [Zackptg5] (https://github.com/Zackptg5/TWRP-DualBoot-Guac-Unified)
+* [Zackptg5](https://github.com/Zackptg5/TWRP-DualBoot-Guac-Unified)
 
 ## License
 
