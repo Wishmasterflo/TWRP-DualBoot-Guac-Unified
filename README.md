@@ -1,6 +1,9 @@
 # TWRP-DualBoot-fajita
 
-Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6t series that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications
+Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6t series that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications.
+
+I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6t now.
+
 
 ## Disclaimer
 * I am not responsible for anything bad that happens to your device. Only experienced users should be using this mod
