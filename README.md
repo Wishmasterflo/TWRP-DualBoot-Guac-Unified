@@ -4,6 +4,11 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6t series t
 
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6t now.
 
+## Changelog
+
+* 10/06/2020 - 3.4.0.0 v1
+  * Initial Release v1 modified Dualboot TWRP for the Oneplus 6t
+  * Updated with Magisk 21.0
 
 ## Disclaimer
 * I am not responsible for anything bad that happens to your device. Only experienced users should be using this mod
@@ -116,10 +121,6 @@ Take note of the **number** (I'll call *userdata_num* for the sake of this tutor
   * MAKE SURE YOU VERIFY ALL VARIABLES HERE ARE SET PROPERLY - if you mess this up, you could format all of sda resulting in a brick
 * Run `sgdisk /dev/block/sda --print` again to make sure everything is correct and then reboot back into twrp
 
-## Changelog
-
-* 10/06/2020 - 3.4.0.0 v1
-  * Initial Release v1 modified Dualboot TWRP for the Oneplus 6t
 
 ## Credits
 
