@@ -82,14 +82,17 @@ change_part() {
         [ "$partname" == "metadata" ] && e2fsdroid -e -S /file_contexts -a /metadata /dev/block/sda$partnum || e2fsdroid -e -S /file_contexts -a /data /dev/block/sda$partnum
       fi
       ;;
-    *) abort "Partitioning error!";;
+	*) abort "Partitioning error!";;
   esac
   [ $? -eq 0 ] || abort "Partitioning error! You'll need to fix it manually!"
 }
 
 stock_userdata() {
   if [ "$curlayout" != "stock" ]; then
-    metadata_b_partline=$(sgdisk --print /dev/block/sda | grep -i metadata_b)
+   	metadata_a_partline=$(sgdisk --print /dev/block/sda | grep -i metadata_a)
+    metadata_a_partnum=$(echo "$metadata_a_partline" | awk '{ print $1 }')
+   
+	metadata_b_partline=$(sgdisk --print /dev/block/sda | grep -i metadata_b)
     metadata_b_partnum=$(echo "$metadata_b_partline" | awk '{ print $1 }')
 
     userdata_b_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_b)
@@ -104,14 +107,15 @@ stock_userdata() {
       userdata_c_partend=$(echo "$userdata_b_partline" | awk '{ print $3 }')
     fi
 
-    change_part delete $metadata_b_partnum
+    change_part delete $metadata_a_partnum
+	change_part delete $metadata_b_partnum
     change_part delete $userdata_b_partnum
     change_part delete $userdata_partnum
     change_part new $userdata_partnum:$userdata_partstart:$userdata_c_partend
     # Update this value
     userdata_partend=$userdata_c_partend
   fi
-  change_part change-name $metadata_partnum:metadata
+  #change_part change-name $metadata_partnum:metadata
   change_part change-name $userdata_partnum:userdata
 }
 
@@ -123,12 +127,16 @@ slot_userdata() {
     userdata_newpartsize=$((size * 1024 * 1024 / 4))
     userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
 
-    metadata_b_partstart=`echo $((userdata_a_partend+1))`
+    metadata_a_partstart=`echo $((userdata_a_partend+1))`
+	metadata_a_partend=`echo $((metadata_a_partstart+metadata_partsize))`
+	metadata_a_partnum=$(echo $((`sgdisk --print /dev/block/sda | awk 'END{print $1}'`+1)))
+	
+	metadata_b_partstart=`echo $((metadata_a_partend+1))`
     metadata_b_partend=`echo $((metadata_b_partstart+metadata_partsize))`
-    metadata_b_partnum=$(echo $((`sgdisk --print /dev/block/sda | awk 'END{print $1}'`+1)))
+    metadata_b_partnum=`echo $((metadata_a_partnum+1))`
 
 		userdata_b_partstart=`echo $((metadata_b_partend+1))`
-    userdata_b_partend=`echo $((userdata_b_partstart+userdata_newpartsize))`
+        userdata_b_partend=`echo $((userdata_b_partstart+userdata_newpartsize))`
 		userdata_b_partnum=`echo $((metadata_b_partnum+1))`
 
 		userdata_c_partstart=`echo $((userdata_b_partend+1))`
@@ -136,21 +144,26 @@ slot_userdata() {
 	else
 		# Cut it in half
 		userdata_length=`echo $((userdata_partend-userdata_partstart))`
-    userdata_newpartsize=`echo $(($((userdata_length - metadata_partsize)) / 2))`
+        userdata_newpartsize=`echo $(($((userdata_length - metadata_partsize)) / 2))`
 		userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
 
-    metadata_b_partstart=`echo $((userdata_a_partend+1))`
+    metadata_a_partstart=`echo $ ((userdata_a_partend+1))`
+	metadata_a_partend=`echo $((metadata_a_partstart+metadata_partsize))`
+	metadata_a_partnum=$(echo $((`sgdisk --print /dev/block/sda | awk 'END{print $1}'`+1)))
+
+    metadata_b_partstart=`echo $((metadata_a_partend+1))`
     metadata_b_partend=`echo $((metadata_b_partstart+metadata_partsize))`
-    metadata_b_partnum=$(echo $((`sgdisk --print /dev/block/sda | awk 'END{print $1}'`+1)))
+    metadata_b_partnum=`echo $((metadata_b_partnum+1))`
 
 		userdata_b_partstart=`echo $((metadata_b_partend+1))`
 		userdata_b_partend=$userdata_partend
 		userdata_b_partnum=`echo $((metadata_b_partnum+1))`
 	fi
-  change_part change-name $metadata_partnum:metadata_a
-	change_part delete $userdata_partnum
-	change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
+  change_part delete $userdata_partnum
+  	change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
   change_part change-name $userdata_partnum:userdata_a
+  change_part new $metadata_a_partnum:$metadata_a_partstart:$metadata_a_partend
+  change_part change-name $metadata_a_partnum:metadata_a
   change_part new $metadata_b_partnum:$metadata_b_partstart:$metadata_b_partend 
   change_part change-name $metadata_b_partnum:metadata_b
 	change_part new $userdata_b_partnum:$userdata_b_partstart:$userdata_b_partend
@@ -163,7 +176,7 @@ slot_userdata() {
 	sleep 0.5
 	ui_print "  Formatting new userdata and metadata partitions"
 	change_part format $userdata_partnum $typea
-	change_part format $metadata_partnum ext4
+	change_part format $metadata_a_partnum ext4
 	change_part format $userdata_b_partnum $typeb
 	change_part format $metadata_b_partnum ext4
   [ "$layout" == "a/b/c" ] && change_part format $userdata_c_partnum $typec
@@ -173,13 +186,13 @@ slot_userdata() {
 repartition_userdata() {
   ui_print " "
 	if [ "$curlayout" == "stock" ]; then
-    metadata_partline=$(sgdisk --print /dev/block/sda | grep -i 'metadata$')
+    # metadata_partline=$(sgdisk --print /dev/block/sda | grep -i 'metadata$')
 		userdata_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata$')
   else
     metadata_partline=$(sgdisk --print /dev/block/sda | grep -i 'metadata_a')
 		userdata_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_a)
 	fi
-  metadata_partnum=$(echo "$metadata_partline" | awk '{ print $1 }')
+    # metadata_partnum=$(echo "$metadata_partline" | awk '{ print $1 }')
 	userdata_partnum=$(echo "$userdata_partline" | awk '{ print $1 }')
 	userdata_partstart=$(echo "$userdata_partline" | awk '{ print $2 }')
 	userdata_partend=$(echo "$userdata_partline" | awk '{ print $3 }')
@@ -190,9 +203,9 @@ repartition_userdata() {
       stock_userdata   
       blockdev --rereadpt /dev/block/sda
       sleep 0.5
-      ui_print "  Formatting userdata and metadata"
+      ui_print "  Formatting userdata"
       change_part format $userdata_partnum $typea
-      change_part format $metadata_partnum ext4
+      # change_part format $metadata_partnum ext4
       ui_print "  Userdata has been repartitioned back to stock"
       ;;
     *)

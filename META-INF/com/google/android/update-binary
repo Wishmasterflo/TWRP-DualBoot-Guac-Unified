@@ -1,6 +1,6 @@
 #!/sbin/sh
 # TWRP A/B Installer Backend
-# by Zackptg5, Osm0sis, Dees_Troy, Topjohnwu, and CosmicDan
+# by Wishmasterflo, Zackptg5, Osm0sis, Dees_Troy, Topjohnwu, and CosmicDan
 
 # Functions needed early
 ui_print() { $BOOTMODE && echo "$1" || echo -e "ui_print $1\nui_print" >> $OUTFD; }
@@ -114,9 +114,54 @@ else
 fi
 size=$cursize
 
+#check for and gather quickmode options 
+ZIPOPT="$(echo $(basename $ZIPFILE))"
+NOCONFIRM=false
+while true; do
+  case $ZIPOPT in
+	*fec.Ab*) KEEPFORCEENCA=true; KEEPFORCEENCB=false; ZIPOPT=$(echo $ZIPOPT | sed -r "s/fec.Ab//g");;
+	*fec.aB*) KEEPFORCEENCA=false; KEEPFORCEENCB=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/fec.aB//g");;
+	*fec.AB*) KEEPFORCEENCA=true; KEEPFORCEENCB=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/fec.AB//g");;
+	*fec.ab*) KEEPFORCEENCA=false; KEEPFORCEENCB=false; ZIPOPT=$(echo $ZIPOPT | sed -r "s/fec.ab//g");;
+	*su.Ab*|*magisk.Ab*) INSTALLMAGISKA=true; INSTALLMAGISKB=false; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(su.Ab|magisk.Ab)//g");;
+	*su.aB*|*magisk.aB*) INSTALLMAGISKA=false; INSTALLMAGISKB=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(su.aB|magisk.aB)//g");;
+	*su.AB*|*magisk.AB*) INSTALLMAGISKA=true; INSTALLMAGISKB=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(su.AB|magisk.AB)//g");;
+	*su.ab*|*magisk.ab*) INSTALLMAGISKA=false; INSTALLMAGISKB=false; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(su.ab|magisk.ab)//g");;
+	*quick*|*fast*) QUICKMODE=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(quick|fast)//g");;
+	*warp*) QUICKMODE=true; NOCONFIRM=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/warp//g");;
+	*confirm.y*) NOCONFIRM=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/confirm.y//g");;
+	*failsafe*|*nofail*) FAILSAFEMODE=true; ZIPOPT=$(echo $ZIPOPT | sed -r "s/(failsafe|nofail)//g");;
+	
+	*) break;;
+  esac
+done
+
+#failsafe mode, make sure reboot to same slot youre booted into already.
+##reminder1 try another bootctl binary/ twrp's current binary seems unable to determine if a slot has booted successfully or is bootable. this makes the failsafe unable to make the correct decision on whether or not to run based on environment
+##reminder2 implement decision to make failsfe not apply in sideload until resolved, still leaves "fastboot boot twrp.img" potentially unsafe, but at least youre at the computer and can fix it
+if [ "$FAILSAFEMODE" = "true" ]; then
+	ui_print " "
+	ui_print " Executing Failsafe... "
+	fscurrentslot=$(bootctl get-current-slot) 
+	bootctl set-active-boot-slot $fscurrentslot
+	fsnextbootslot=$(bootctl get-suffix $fscurrentslot)
+	ui_print " Done. you will now boot to $fsnextbootslot"
+	ui_print " ** IF YOU JUST FLASHED A ROM ** "
+	ui_print " ** TWRP will almost certainly show wrong slot now "
+	
+else
+	FAILSAFEMODE=false #set to false so status works correctly
+fi
+
 # Repartitioning can't happen if zip is in affected partition
 case $ZIPFILE in
   "/sideload/package.zip"|"/tmp/"*|"/dev/"*) ;;
+  *quick*|*fast*|*warp*) 
+	ZIPOPT="$(echo $(basename $ZIPFILE))"
+	case $ZIPOPT in
+	*quick*|*fast*|*warp*) echo ;; #disable repartition prompt for quickmode
+	esac
+	;;
   *) 
     ui_print " "
     ui_print "  Zip can't be flashed from $(dirname "$ZIPFILE")"
@@ -142,6 +187,34 @@ case $ZIPFILE in
     ;;
 esac
 
+if [ "$QUICKMODE" = "true" ]; then
+	ui_print " "
+	ui_print " Quickmode enabled, not asking questions... "
+	$NOCONFIRM || ui_print " Confirmation enabled... " && ui_print " Confirmation disabled... HOPE YOU KNOW WHAT YOURE DOING!"
+	[ "$(echo "$ZIPFILE" | cut -d / -f1-2)" == "/data" ] && mountdata=false
+	layout=$curlayout
+	#never format in quickmode
+	format=false
+	magiska=$INSTALLMAGISKA 
+	feca=$KEEPFORCEENCA
+	magiskb=$INSTALLMAGISKB
+	fecb=$KEEPFORCEENCB
+	#defaults
+	if [ -z "$magiska" ]; then
+		magiska=true 
+	fi
+	if [ -z "$magiskb" ]; then
+		magiskb=true
+	fi
+	if [ -z "$feca" ]; then
+		feca=false
+	fi
+	if [ -z "$fecb" ]; then
+		fecb=false
+	fi
+fi
+
+if [ "$QUICKMODE" != "true" ]; then
 ui_print " "
 ui_print "- Current layout: $curlayout, userdata size: $cursize gb"
 # Set new layout
@@ -219,8 +292,11 @@ if ($magiska || $magiskb) && ! $mountdata; then
   sleep 3
 fi
 
+fi
+
 ui_print " "
 ui_print "- Selected Options"
+$FAILSAFEMODE && ui_print "  Failsafe: Applied" || ui_print "  Failsafe: Not Applied"
 [ "$layout" != "$curlayout" ] && ui_print "  Layout: $curlayout -> $layout" || ui_print "  Layout: $curlayout"
 $KEEPVERITY && ui_print "  Dm-Verity: Enabled/Not Changed" || ui_print "  Dm-Verity: Disabled"
 if [ "$layout" == "stock" ]; then
@@ -245,12 +321,15 @@ else
     [ $cursize != $size ] && ui_print "    Common Data Size: $comsize -> $((actualsize-7-$size*2)) gb" || ui_print "    Common Data Size: $comsize gb"
   fi
 fi
+
 sleep 1
 ui_print " "
+if [ "$NOCONFIRM" != "true" ]; then
 ui_print "- Last Chance - Are you sure?"
 [ "$layout" != "$curlayout" ] && { ui_print "  All data including internal storage will be wiped"; sleep 1; }
 ui_print "  Vol+ yes, Vol- no (exit installer)"
 chooseport && ui_print " " || { ui_print " "; ui_print "Exiting installer!"; exit 0; }
+fi
 ui_print "- Beginning install"
 
 # Patch TWRP if needed for slot userdata and metadata, patch commondata mount script
@@ -329,10 +408,10 @@ for slot_select in active inactive; do
     if ! $KEEPVERITY; then
       rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
       [ "$(grep '# Zackptg5-DualBoot' /system_root/init.rc)" ] && sed -i -e "/# Zackptg5-DualBootMod/,/init.mount_datacommon.sh/d" -e "$d" /system_root/init.rc
-      while true; do 
+	  while true; do 
         [ "$(tail -n1 /system_root/init.rc)" ] && break || sed -i '$d' /system_root/init.rc
-      done
-
+	  done
+	  
       # Get location of sepolicy
       $magisk && context=magisk || context=shell
       [ -f /system/etc/selinux/plat_sepolicy.cil.bak ] && mv -f /system/etc/selinux/plat_sepolicy.cil.bak /system/etc/selinux/plat_sepolicy.cil
@@ -360,18 +439,8 @@ for slot_select in active inactive; do
         abort "  Sepolicy not found! Report to @Zackptg5"
       fi
 
-      # (permissive vold) (permissive shell)\n(allow init media_rw_data_file dir mounton)
-      # if [ "$(echo $file | awk -F '.' '{print $NF}')" == "cil" ] && [ ! "$(grep "$1" $file)" ]; then
-      #   echo "$1" >> $file
-      #   # Regenerate sha256sum - note that order of files matters (main file followed by mapping)
-      #   [ "$file" == "/system/etc/selinux/plat_sepolicy.cil" ] && cat $file /system/etc/selinux/mappings/$(cat /vendor/etc/selinux/plat_sepolicy_vers.txt).cil | sha256sum -b > /system/etc/selinux/plat_sepolicy_and_mapping.sha256
-      # else
-      #   magiskpolicy --load $file --save $file $2
-      # fi
-
       if [ "$layout" != "stock" ]; then
         ui_print "  Patching sepolicy"
-        # $magisk || magiskpolicy --load $file --save $file "allow shell * * *"
         magiskpolicy --load $file --save $file "allow shell * * *"
         context=shell
         # Needed for encryption -> "Unable to measure size of /dev/block/bootdevice/by-name/userdata_x: Permission denied"

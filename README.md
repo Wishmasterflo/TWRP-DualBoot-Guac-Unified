@@ -6,7 +6,12 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 
 ## Changelog
 
-* 10/06/2020 - 3.4.0.0 v1
+* 10/12/2020 - 3.4.0-0 v2
+  * Fixed automatic Formatting and creating of the partitions
+  * added quickmode options which can be provided directly to the ZIP file name
+  * A lot of other bugfixes and improvments
+  
+* 10/06/2020 - 3.4.0-0 v1
   * Initial Release v1 modified Dualboot TWRP for the Oneplus 6/6t
   * Updated with Magisk 21.0
 
