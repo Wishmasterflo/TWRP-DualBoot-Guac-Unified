@@ -29,10 +29,9 @@ Make sure you have a backup and know how to reparititon your phone back to stock
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
 ## Issues right now
-* The mounting of the Commondata is not yet working from within the ROMs/slots (only in TWRP right now).
-* When flashing a Android 11 ROM in one of the slots and then flash this Dualboot-TWRP it will get stuck while patching that slot.
-  Seems to be an issue with patching the fstab on a slot with Android 11 installed.
-* Formatting the created partitions for Dualboot was nt working automatically as of now and need some manual formatting of the partitions.
+* The mounting of the Commondata is not yet working from within the ROMs/slots (only in TWRP right now). This seems to be the hardest thing to get fixed!
+* Android 11 is able to boot with Dualboot but it seems that something is breaking Magisk after re-flashing the Dualboot-TWRP on Android 11.
+  So as long as you have Magisk Canary 20422 installed on Android 11 and dont re-flash the Dualboot TWRP (due to ROM Update etc.) it will work.
 
 ## Limitation
 * If you set a password, regardless of encryption status, it'll corrupt the other slot if it's also password protected. 
