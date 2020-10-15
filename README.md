@@ -6,6 +6,10 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 
 ## Changelog
 
+* 10/15/2020 - 3.4.0-0 v2.2
+  * Fixed better detection of Android 11 Installed ROMS
+  * Build Dualboot Installer for Oneplus 6 enchilada
+
 * 10/13/2020 - 3.4.0-0 v2.1
   * Fixed hanging when on Android 11
 
