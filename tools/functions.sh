@@ -115,8 +115,7 @@ stock_userdata() {
     # Update this value
     userdata_partend=$userdata_c_partend
   fi
-  #change_part change-name $metadata_partnum:metadata
-  change_part change-name $userdata_partnum:userdata
+   change_part change-name $userdata_partnum:userdata
 }
 
 slot_userdata() {

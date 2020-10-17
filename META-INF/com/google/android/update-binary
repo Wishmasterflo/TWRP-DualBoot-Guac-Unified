@@ -34,12 +34,10 @@ $BOOTMODE && abort "! Flash in TWRP - use img by mauronofrio if first install!"
 ui_print "###########################################"
 ui_print "#         TWRP + Magisk Installer         #"
 ui_print "#          with a/b userdata for          #"
-ui_print "#              OnePlus 6/6t               #"
+ui_print "#               OnePlus 6                 #"
 ui_print "#            by Wishmasterflo             #"
 ui_print "###########################################"
 ui_print "#        TWRP build by Mauronofrio        #"
-ui_print "###########################################"
-ui_print "# Note that this will also disable verity #"
 ui_print "###########################################"
 ui_print " "
 
@@ -62,7 +60,7 @@ cd $tmp
 # Device check
 supported=false
 ui_print "- Checking device compatibility"
-for i in OnePlus6t fajita Oneplus6 enchilada; do
+for i in Oneplus6 enchilada; do
   for prop in "ro.product.device" "ro.build.product" "ro.product.vendor.device" "ro.vendor.product.device" "ro.omni.device"; do
     if [ "$(getprop $prop)" == "$i" ]; then
       ui_print "  Supported Device Detected!"
@@ -87,7 +85,7 @@ if mount | grep '/dev/block/dm-0'; then
   ui_print " "
   ui_print "  Otherwise, continue"
   ui_print " "
-  sleep 3
+  sleep 1
   ui_print "- Continue?"
   ui_print "  Vol+ yes, Vol- no"
   chooseport && { mountdata=false; format=false; layout=$curlayout; } || exit 0
@@ -171,7 +169,7 @@ case $ZIPFILE in
     ui_print "  Otherwise, the zip will copy itself to /tmp"
     ui_print "  and you can flash it from there"
     ui_print " "
-    sleep 3
+    sleep 1
     ui_print "- Continue?"
     ui_print "  Vol+ yes, Vol- no"
     if chooseport; then
@@ -190,7 +188,7 @@ esac
 if [ "$QUICKMODE" = "true" ]; then
 	ui_print " "
 	ui_print " Quickmode enabled, not asking questions... "
-	$NOCONFIRM || ui_print " Confirmation enabled... " && ui_print " Confirmation disabled... HOPE YOU KNOW WHAT YOURE DOING!"
+	$NOCONFIRM || ui_print " Checking for confirmation enabled/disabled..."
 	[ "$(echo "$ZIPFILE" | cut -d / -f1-2)" == "/data" ] && mountdata=false
 	layout=$curlayout
 	#never format in quickmode
@@ -289,7 +287,7 @@ if ($magiska || $magiskb) && ! $mountdata; then
   ui_print "  Magisk will patch boot img only"
   ui_print "  You'll need to install the apk normally"
   ui_print "  And it'll prompt you to install the rest"
-  sleep 3
+  sleep 2
 fi
 
 fi
@@ -400,18 +398,15 @@ for slot_select in active inactive; do
   mount -o $flags "/dev/block/bootdevice/by-name/odm$slot" /odm
   mount -o rw /dev/block/bootdevice/by-name/persist /persist
 
-  if [ -f /system/build.prop ]; then
+  # Check for installed Android 10 or lower ROM
+  if [ -f /system/build.prop ] && [ -f /system_root/init.rc ]; then
     if $mountdata; then
       [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
     fi
 
     if ! $KEEPVERITY; then
       rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
-      [ "$(grep '# Zackptg5-DualBoot' /system_root/init.rc)" ] && sed -i -e "/# Zackptg5-DualBootMod/,/init.mount_datacommon.sh/d" -e "$d" /system_root/init.rc
-	  while true; do 
-        [ "$(tail -n1 /system_root/init.rc)" ] && break || sed -i '$d' /system_root/init.rc
-	  done
-	  
+ 	  
       # Get location of sepolicy
       $magisk && context=magisk || context=shell
       [ -f /system/etc/selinux/plat_sepolicy.cil.bak ] && mv -f /system/etc/selinux/plat_sepolicy.cil.bak /system/etc/selinux/plat_sepolicy.cil
@@ -421,10 +416,7 @@ for slot_select in active inactive; do
           file=/odm/etc/selinux/precompiled_sepolicy
         elif [ -f /vendor/etc/selinux/precompiled_sepolicy ]; then
           file=/vendor/etc/selinux/precompiled_sepolicy
-        # elif [ -e /system_root/force_debuggable ] && [ -f /system_root/adb_debug.prop ] && [ -f /system_root/userdebug_plat_sepolicy.cil ]; then
-          # file=/system_root/userdebug_plat_sepolicy.cil
         else
-          # file=/system/etc/selinux/plat_sepolicy.cil
           # Modifying cil ends up in QCOM Fastboot so we'll force monolithic creation instead
           file=/system_root/sepolicy
           rm -f $file
@@ -436,7 +428,7 @@ for slot_select in active inactive; do
         file=/system_root/sepolicy
       else
         # Ramdisk sepolicy is for recovery only
-        abort "  Sepolicy not found! Report to @Zackptg5"
+        abort "  Sepolicy not found! "
       fi
 
       if [ "$layout" != "stock" ]; then
@@ -446,15 +438,15 @@ for slot_select in active inactive; do
         # Needed for encryption -> "Unable to measure size of /dev/block/bootdevice/by-name/userdata_x: Permission denied"
         $KEEPFORCEENCRYPT && magiskpolicy --load $file --save $file "allow vold * * *"
 
-        if [ "$layout" == "a/b/c" ]; then
+        if [ "$layout" == "a/b/c" ] && [ -d /data/adb/service.d ]; then
           ui_print "  Installing commondata mount script"
           magiskpolicy --load $file --save $file "allow init media_rw_data_file dir mounton" #"allow fsck block_device blk_file { ioctl read write getattr lock append map open }"
           mkdir /system_root/datacommon 2>/dev/null
           set_perm /system_root/datacommon media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
           cp -f $tmp/init.mount_datacommon.sh /system_root/init.mount_datacommon.sh
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-          [ "$(grep '# Zackptg5-DualBootMod' /system_root/init.rc)" ] || echo -ne "\n# Zackptg5-DualBootMod" >> /system_root/init.rc
-          echo -e "\non property:sys.boot_completed=1\n    exec_background u:r:$context:s0 -- /init.mount_datacommon.sh\n" >> /system_root/init.rc
+          cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
+		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
       fi
 
@@ -481,12 +473,93 @@ for slot_select in active inactive; do
     patch_dtb_partitions
     $magiskdata && run_migrations
   else
+  
+ # Check for installed Android 11 ROM
+ if [ -f /system/etc/init/hw/init.rc ]; then
+   ui_print "  Android 11 ROM detected!"   
+   if $mountdata; then
+      [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
+    fi
+
+    if ! $KEEPVERITY; then
+      rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
+	  
+      # Get location of sepolicy
+      $magisk && context=magisk || context=shell
+      [ -f /system/etc/selinux/plat_sepolicy.cil.bak ] && mv -f /system/etc/selinux/plat_sepolicy.cil.bak /system/etc/selinux/plat_sepolicy.cil
+      if [ -f /system/etc/selinux/plat_sepolicy.cil ]; then
+        # Split policy
+        if [ -f /odm/etc/selinux/precompiled_sepolicy ]; then
+          file=/odm/etc/selinux/precompiled_sepolicy
+        elif [ -f /vendor/etc/selinux/precompiled_sepolicy ]; then
+          file=/vendor/etc/selinux/precompiled_sepolicy
+        else
+          # Modifying cil ends up in QCOM Fastboot so we'll force monolithic creation instead
+          file=/system_root/sepolicy
+          rm -f $file
+          magiskpolicy --compile-split --save $file
+          mv -f /system/etc/selinux/plat_sepolicy.cil /system/etc/selinux/plat_sepolicy.cil.bak
+        fi
+      # Monolithic policy
+      elif [ -f /system_root/sepolicy ]; then
+        file=/system_root/sepolicy
+      else
+        # Ramdisk sepolicy is for recovery only
+        abort "  Sepolicy not found! "
+      fi
+
+      if [ "$layout" != "stock" ]; then
+        ui_print "  Patching sepolicy"
+        magiskpolicy --load $file --save $file "allow shell * * *"
+        context=shell
+        # Needed for encryption -> "Unable to measure size of /dev/block/bootdevice/by-name/userdata_x: Permission denied"
+        $KEEPFORCEENCRYPT && magiskpolicy --load $file --save $file "allow vold * * *"
+
+        if [ "$layout" == "a/b/c" ] && [ -d /data/adb/service.d ]; then
+          ui_print "  Installing commondata mount script"
+          magiskpolicy --load $file --save $file "allow init media_rw_data_file dir mounton" #"allow fsck block_device blk_file { ioctl read write getattr lock append map open }"
+          mkdir /system_root/datacommon 2>/dev/null
+          set_perm /system_root/datacommon media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
+          cp -f $tmp/init.mount_datacommon.sh /system_root/init.mount_datacommon.sh
+          set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
+          cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
+		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
+        fi
+      fi
+
+      # Patch vendor fstabs
+      FSTABS="$(find /system_root /vendor/etc /odm/etc -maxdepth 1 -type f -name "fstab.qcom" | sed 's|^./|/|')"
+      [ "$FSTABS" ] && patch_fstabs
+    fi
+
+    # Un/Install Magisk, patch verity otherwise since we're likely modifying system
+    if $magisk; then
+      . magisk.sh
+    else
+      ui_print "  Patching ramdisk"
+      magiskboot cpio ramdisk.cpio patch
+      rm -rf \
+      /cache/*magisk* /cache/unblock /data/*magisk* /data/cache/*magisk* /data/property/*magisk* \
+      /data/Magisk.apk /data/busybox /data/custom_ramdisk_patch.sh /data/adb/*magisk* \
+      /data/adb/post-fs-data.d /data/adb/service.d /data/adb/modules* $PERSISTDIR/magisk \
+      /system/addon.d/99-magisk.sh \
+      /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
+    fi
+  fi
+  
+    binary_patches
+    patch_dtb_partitions
+    $magiskdata && run_migrations
+ 
+ if ! [ -f /system/build.prop ]; then 
+ 
     ui_print " "
     ui_print "  No OS installed to this slot!"
     ui_print "  Skipping non-boot img related functions!"
     ui_print "  Flash this zip again after installing OS"
     ui_print " "
-  fi
+   fi 
+ fi
 
   # Repack
   ui_print "  Repacking boot img"
