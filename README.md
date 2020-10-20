@@ -5,6 +5,16 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6t series t
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6t now.
 
 ## Changelog
+* 10/20/2020 - 3.4.0-0 v3
+  * Added Blackout TWRP Themed by acuicultor and Morphine1
+  * Added support/detection for 64GB Oneplus 6 enchilada devices
+  * Added that Magisk 21.0 does not get flashed on Android 11 ROMs (as that is not working now!)
+  * removed automatic launch of Common data mount script on Android 11 as that caused strange behaviour when rebooting the phone!
+  * Some more small adjustments in the flashing script
+  * Adjusted sizes for the userdata partitions when using A/B/C Layout as follows: 
+    64GB    16, 24 GB partition size for A/B/C Layout
+	128GB   16, 32, 40, 45 GB partition size for A/B/C Layout
+	256GB   16, 32, 64, 96 GB partition size for A/B/C Layout
 
 * 10/17/2020 - 3.4.0-0 v2.3
   * Fixed mounting of Common data partition
