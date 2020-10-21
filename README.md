@@ -1,6 +1,6 @@
 # TWRP-DualBoot-fajita-enchilada
 
-A big thanks to Zackptg5. Tha master of this mod from the beginning. I just adjusted this now to work on the Oneplus 6 series phones.
+A big thanks to Zackptg5. The master of this mod from the beginning. I just adjusted this now to work on the Oneplus 6 series phones.
 
 Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series that re-purposes userdata for true dual booting. You can still use this as a regular stock twrp zip - one stop shop for magisk, verity, and/or forced encryption modifications.
 
