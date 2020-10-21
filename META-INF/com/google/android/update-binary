@@ -31,11 +31,21 @@ ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false
 $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true
 $BOOTMODE && abort "! Flash in TWRP - use img by mauronofrio if first install!"
 
+ui_print "    #                              /" 
+ui_print "     #                            /"
+ui_print "      #   .##########////////.   /"
+ui_print "      (##############//////////////)"
+ui_print "    #################/////////////////"
+ui_print "   ######( *  )######////( *  )/////////"
+ui_print "  ###################////////////////////"
+ui_print " ####################/////////////////////"
+ui_print "#####################//////////////////////"
 ui_print "###########################################"
 ui_print "#         TWRP + Magisk Installer         #"
-ui_print "#          with a/b userdata for          #"
-ui_print "#               OnePlus 6                 #"
-ui_print "#            by Wishmasterflo             #"
+ui_print "#            with a/b userdata            #"
+ui_print "#               by Zackptg5               #"
+ui_print "#         adjusted by Wishmasterflo       #"
+ui_print "#            for the Oneplus 6t           #"
 ui_print "###########################################"
 ui_print "#        TWRP build by Mauronofrio        #"
 ui_print "###########################################"
@@ -60,7 +70,7 @@ cd $tmp
 # Device check
 supported=false
 ui_print "- Checking device compatibility"
-for i in Oneplus6 enchilada; do
+for i in OnePlus6t fajita; do
   for prop in "ro.product.device" "ro.build.product" "ro.product.vendor.device" "ro.vendor.product.device" "ro.omni.device"; do
     if [ "$(getprop $prop)" == "$i" ]; then
       ui_print "  Supported Device Detected!"
@@ -254,8 +264,6 @@ export KEEPVERITY
 ui_print " "
 ui_print "- Forced Encryption: Keep as is or Disable?"
 if [ "$layout" != "stock" ]; then
-  ui_print "  Be sure to read the Limitation in the Readme!"
-  ui_print "  Disabling encryption recommended for reasons listed!"
   sleep 1
   ui_print "  Vol+ Do not change, Vol- Disable (recommended)"
   ui_print " "
@@ -383,7 +391,7 @@ for slot_select in active inactive; do
     magiskboot cpio ramdisk.cpio "add 0644 etc/twrp.fstab twrp.fstab"
     rm -f twrp.fstab
   fi
-
+ 
   # Possibly using 2SI, export env var
   magiskboot cpio ramdisk.cpio test
   STATUS=$?
@@ -406,7 +414,7 @@ for slot_select in active inactive; do
 
     if ! $KEEPVERITY; then
       rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
- 	  
+     
       # Get location of sepolicy
       $magisk && context=magisk || context=shell
       [ -f /system/etc/selinux/plat_sepolicy.cil.bak ] && mv -f /system/etc/selinux/plat_sepolicy.cil.bak /system/etc/selinux/plat_sepolicy.cil
@@ -445,7 +453,7 @@ for slot_select in active inactive; do
           set_perm /system_root/datacommon media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
           cp -f $tmp/init.mount_datacommon.sh /system_root/init.mount_datacommon.sh
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-          cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
+		  cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
       fi
@@ -522,8 +530,8 @@ for slot_select in active inactive; do
           set_perm /system_root/datacommon media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
           cp -f $tmp/init.mount_datacommon.sh /system_root/init.mount_datacommon.sh
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-          cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
-		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
+	    # cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
+	    # set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
       fi
 
@@ -534,16 +542,18 @@ for slot_select in active inactive; do
 
     # Un/Install Magisk, patch verity otherwise since we're likely modifying system
     if $magisk; then
-      . magisk.sh
+	ui_print "  Android 11 ROM. Please flash Magisk manually!" 
+	# . magisk.sh
     else
-      ui_print "  Patching ramdisk"
-      magiskboot cpio ramdisk.cpio patch
-      rm -rf \
-      /cache/*magisk* /cache/unblock /data/*magisk* /data/cache/*magisk* /data/property/*magisk* \
-      /data/Magisk.apk /data/busybox /data/custom_ramdisk_patch.sh /data/adb/*magisk* \
-      /data/adb/post-fs-data.d /data/adb/service.d /data/adb/modules* $PERSISTDIR/magisk \
-      /system/addon.d/99-magisk.sh \
-      /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
+	 ui_print "  Magisk will not be installed!" 
+    #  ui_print "  Patching ramdisk"
+    #  magiskboot cpio ramdisk.cpio patch
+    #  rm -rf \
+    #  /cache/*magisk* /cache/unblock /data/*magisk* /data/cache/*magisk* /data/property/*magisk* \
+    #  /data/Magisk.apk /data/busybox /data/custom_ramdisk_patch.sh /data/adb/*magisk* \
+    #  /data/adb/post-fs-data.d /data/adb/service.d /data/adb/modules* $PERSISTDIR/magisk \
+    #  /system/addon.d/99-magisk.sh \
+    #  /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
     fi
   fi
   
@@ -584,7 +594,7 @@ cd /
 rm -rf /dev/tmp
 
 ui_print " "
-ui_print "- Done installing TWRP"
+ui_print "- Done installing Dualboot TWRP"
 ui_print " "
 if [ "$layout" == "stock" ]; then
   $magisk || ui_print "*** NOTE: You are now unrooted! ***"

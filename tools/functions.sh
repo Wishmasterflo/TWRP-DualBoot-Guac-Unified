@@ -30,13 +30,13 @@ unmountAllAndRefreshPartitions() {
 select_size() {
   ui_print " "
   ui_print "- Supported Partition Sizes for userdata:"
-  [ $totsize -gt 128 ] && local sizes="16, 32, 64, or 96 gb" || local sizes="16 or 32 gb"
+  [ $totsize -gt 128 ] && local sizes="16, 32, 64, or 96 gb" || local sizes="16, 32, 40, or 45 gb"
   ui_print "  $sizes"
   ui_print "  Common Data takes up whatever is left"
   sleep 2
   ui_print " "
   ui_print "  Choose Userdata Size:"
-  for i in 16 32 64 96; do
+  for i in 16 32 40 45 64 96; do
     [ "$sizes" == "or $i gb" ] && { size=$i; return 0; }
     sizes="$(echo $sizes | sed -r "s/^$i, |^$i //g")"
     ui_print "  Vol+ $i gb; Vol- $sizes"
