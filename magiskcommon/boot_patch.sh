@@ -117,6 +117,11 @@ case $((STATUS & 3)) in
     ;;
 esac
 
+if [ $((STATUS & 8)) -ne 0 ]; then
+  # Possibly using 2SI, export env var
+  export TWOSTAGEINIT=true
+fi
+
 ##################
 # Ramdisk Patches
 ##################

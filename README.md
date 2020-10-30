@@ -7,6 +7,12 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6 series now.
 
 ## Changelog
+* 10/30/2020 - 3.4.0-0 v3.1
+  * Removed unnessessary stuff which was left from the Oneplus 7 devices
+  * Fixed Common data mount script for Android 11
+  * Magisk 20.4
+  * Dualboot-TWRP can be flashed from USB Storage as well now
+
 * 10/20/2020 - 3.4.0-0 v3
   * Added Blackout TWRP Themed by acuicultor and Morphine1
   * Added support/detection for 64GB Oneplus 6 enchilada devices

@@ -163,7 +163,7 @@ fi
 
 # Repartitioning can't happen if zip is in affected partition
 case $ZIPFILE in
-  "/sideload/package.zip"|"/tmp/"*|"/dev/"*) ;;
+  "/sideload/package.zip"|"/tmp/"*|"/dev/"*|"/usbstorage/"*) ;;
   *quick*|*fast*|*warp*) 
 	ZIPOPT="$(echo $(basename $ZIPFILE))"
 	case $ZIPOPT in
@@ -338,13 +338,13 @@ chooseport && ui_print " " || { ui_print " "; ui_print "Exiting installer!"; exi
 fi
 ui_print "- Beginning install"
 
-# Patch TWRP if needed for slot userdata and metadata, patch commondata mount script
+# Patch TWRP if needed for slot userdata, patch commondata mount script
 if [ "$layout" != "stock" ]; then
   magiskboot cpio ramdisk-recovery.cpio "extract etc/recovery.wipe recovery.wipe"
   sed -i 's|^/dev/block/bootdevice/by-name/userdata$|/dev/block/bootdevice/by-name/userdata_a\n/dev/block/bootdevice/by-name/userdata_b|' recovery.wipe
   magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/recovery.wipe recovery.wipe"
   magiskboot cpio ramdisk-recovery.cpio "extract etc/twrp.fstab twrp.fstab"
-  sed -ri -e 's|(/userdata.*flags=)|\1slotselect;|' -e 's|(.*name/metadata) *|\1\t\t\t\t\tflags=slotselect;backup=0;display="Metadata"|' twrp.fstab
+  sed -ri 's|(/userdata.*flags=)|\1slotselect;|' twrp.fstab
   if [ "$layout" == "a/b/c" ]; then
     sed -i "\|^/data|a/datacommon\t\t$typec\t/dev/block/bootdevice/by-name/userdata2\t\t\t\t\tflags=display=\"Common Storage\";wipeingui;storage" twrp.fstab
     magiskboot cpio ramdisk-recovery.cpio "mkdir 0771 datacommon"
@@ -357,7 +357,7 @@ for i in magiskboot magiskpolicy sgdisk; do
   magiskboot cpio ramdisk-recovery.cpio "exists /sbin/$i" || magiskboot cpio ramdisk-recovery.cpio "add 0755 sbin/$i $tools/$i"
 done
 
-# Reparition and/or format userdata and metadata if applicable
+# Reparition and/or format userdata if applicable
 unmountAllAndRefreshPartitions
 $format && repartition_userdata
 blockdev --rereadpt /dev/block/sda
@@ -530,8 +530,8 @@ for slot_select in active inactive; do
           set_perm /system_root/datacommon media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
           cp -f $tmp/init.mount_datacommon.sh /system_root/init.mount_datacommon.sh
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-	    # cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
-	    # set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
+	      cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
+	      set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
       fi
 
