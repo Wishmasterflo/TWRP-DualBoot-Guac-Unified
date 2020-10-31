@@ -33,7 +33,7 @@ select_size() {
   [ $totsize -gt 128 ] && local sizes="16, 32, 64, or 96 gb" || local sizes="16, 32, 40, or 45 gb"
   ui_print "  $sizes"
   ui_print "  Common Data takes up whatever is left"
-  sleep 2
+  sleep 1
   ui_print " "
   ui_print "  Choose Userdata Size:"
   for i in 16 32 40 45 64 96; do
@@ -116,24 +116,25 @@ slot_userdata() {
     userdata_newpartsize=$((size * 1024 * 1024 / 4))
     userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
 
-		userdata_b_partstart=`echo $((userdata_a_partend+1))`
+    userdata_b_partstart=`echo $((userdata_a_partend+1))`
     userdata_b_partend=`echo $((userdata_b_partstart+userdata_newpartsize))`
-		userdata_b_partnum=`echo $((userdata_a_partnum+1))`
-
-		userdata_c_partstart=`echo $((userdata_b_partend+1))`
-		userdata_c_partnum=`echo $((userdata_b_partnum+1))`
+    userdata_b_partnum=$(echo $((`sgdisk --print /dev/block/sda | awk 'END{print $1}'`+1)))
+	
+    userdata_c_partstart=`echo $((userdata_b_partend+1))`
+    userdata_c_partnum=`echo $((userdata_b_partnum+1))`
 	else
 		# Cut it in half
-		userdata_length=`echo $((userdata_partend-userdata_partstart))`
-    userdata_newpartsize=`echo $((userdata_length / 2))`
-		userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
+	userdata_length=`echo $((userdata_partend-userdata_partstart))`
+    userdata_newpartsize=`echo $(($(userdata_length) / 2))`
+	userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
 
-		userdata_b_partstart=`echo $((userdata_a_partend+1))`
-		userdata_b_partend=$userdata_partend
-		userdata_b_partnum=`echo $((userdata_a_partnum+1))`
+    userdata_b_partstart=`echo $((userdata_a_partend+1))`
+    userdata_b_partend=$userdata_partend
+    userdata_b_partnum=`echo $((userdata_partnum+1))`
+
 	fi
   change_part delete $userdata_partnum
-  change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
+  	change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
   change_part change-name $userdata_partnum:userdata_a
 	change_part new $userdata_b_partnum:$userdata_b_partstart:$userdata_b_partend
   change_part change-name $userdata_b_partnum:userdata_b
