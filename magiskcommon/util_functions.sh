@@ -5,8 +5,8 @@
 #
 ############################################
 
-MAGISK_VER="20.4"
-MAGISK_VER_CODE=20400
+MAGISK_VER="21.1"
+MAGISK_VER_CODE=21100
 
 ###################
 # Helper Functions
@@ -35,8 +35,10 @@ grep_prop() {
 
 getvar() {
   local VARNAME=$1
-  local VALUE=
-  VALUE=`grep_prop $VARNAME /sbin/.magisk/config /data/.magisk /cache/.magisk`
+  local VALUE
+  local PROPPATH='/data/.magisk /cache/.magisk'
+  [ -n $MAGISKTMP ] && PROPPATH="$MAGISKTMP/config $PROPPATH"
+  VALUE=$(grep_prop $VARNAME $PROPPATH)
   [ ! -z $VALUE ] && eval $VARNAME=\$VALUE
 }
 
@@ -60,11 +62,15 @@ resolve_vars() {
 }
 
 print_title() {
-  local len=$(echo -n $1 | wc -c)
+  local len line1len line2len pounds
+  line1len=$(echo -n $1 | wc -c)
+  line2len=$(echo -n $2 | wc -c)
+  [ $line1len -gt $line2len ] && len=$line1len || len=$line2len
   len=$((len + 2))
-  local pounds=$(printf "%${len}s" | tr ' ' '*')
+  pounds=$(printf "%${len}s" | tr ' ' '*')
   ui_print "$pounds"
   ui_print " $1 "
+  [ "$2" ] && ui_print " $2 "
   ui_print "$pounds"
 }
 
@@ -109,7 +115,7 @@ ensure_bb() {
   # Find our current arguments
   # Run in busybox environment to ensure consistent results
   # /proc/<pid>/cmdline shall be <interpreter> <script> <arguments...>
-  local cmds=$($bb sh -o standalone -c "
+  local cmds="$($bb sh -o standalone -c "
   for arg in \$(tr '\0' '\n' < /proc/$$/cmdline); do
     if [ -z \"\$cmds\" ]; then
       # Skip the first argument as we want to change the interpreter
@@ -118,7 +124,7 @@ ensure_bb() {
       cmds=\"\$cmds '\$arg'\"
     fi
   done
-  echo \$cmds")
+  echo \$cmds")"
 
   # Re-exec our script
   echo $cmds | $bb xargs $bb
@@ -147,6 +153,7 @@ recovery_cleanup() {
   fi
   umount -l /vendor
   umount -l /persist
+  umount -l /metadata
   for DIR in /apex /system /system_root; do
     if [ -L "${DIR}_link" ]; then
       rmdir $DIR
@@ -165,23 +172,32 @@ recovery_cleanup() {
 
 # find_block [partname...]
 find_block() {
+  local BLOCK DEV DEVICE DEVNAME PARTNAME UEVENT
   for BLOCK in "$@"; do
-    DEVICE=`find /dev/block -type l -iname $BLOCK | head -n 1` 2>/dev/null
+    DEVICE=`find /dev/block \( -type b -o -type c -o -type l \) -iname $BLOCK | head -n 1` 2>/dev/null
     if [ ! -z $DEVICE ]; then
       readlink -f $DEVICE
       return 0
     fi
   done
   # Fallback by parsing sysfs uevents
-  for uevent in /sys/dev/block/*/uevent; do
-    local DEVNAME=`grep_prop DEVNAME $uevent`
-    local PARTNAME=`grep_prop PARTNAME $uevent`
+  for UEVENT in /sys/dev/block/*/uevent; do
+    DEVNAME=`grep_prop DEVNAME $UEVENT`
+    PARTNAME=`grep_prop PARTNAME $UEVENT`
     for BLOCK in "$@"; do
-      if [ "`toupper $BLOCK`" = "`toupper $PARTNAME`" ]; then
+      if [ "$(toupper $BLOCK)" = "$(toupper $PARTNAME)" ]; then
         echo /dev/block/$DEVNAME
         return 0
       fi
     done
+  done
+  # Look just in /dev in case we're dealing with MTD/NAND without /dev/block devices/links
+  for DEV in "$@"; do
+    DEVICE=`find /dev \( -type b -o -type c -o -type l \) -maxdepth 1 -iname $DEV | head -n 1` 2>/dev/null
+    if [ ! -z $DEVICE ]; then
+      readlink -f $DEVICE
+      return 0
+    fi
   done
   return 1
 }
@@ -203,13 +219,13 @@ mount_name() {
   local FLAG=$3
   setup_mntpoint $POINT
   is_mounted $POINT && return
-  ui_print "- Mounting $POINT"
   # First try mounting with fstab
   mount $FLAG $POINT 2>/dev/null
   if ! is_mounted $POINT; then
-    local BLOCK=`find_block $PART`
-    mount $FLAG $BLOCK $POINT
+    local BLOCK=$(find_block $PART)
+    mount $FLAG $BLOCK $POINT || return
   fi
+  ui_print "- Mounting $POINT"
 }
 
 # mount_ro_ensure <partname(s)> <mountpoint>
@@ -233,7 +249,7 @@ mount_partitions() {
 
   # Mount ro partitions
   mount_ro_ensure "system$SLOT app$SLOT" /system
-  if [ -f /system/init.rc ]; then
+  if [ -f /system/init -o -L /system/init ]; then
     SYSTEM_ROOT=true
     setup_mntpoint /system_root
     if ! mount --move /system /system_root; then
@@ -246,23 +262,12 @@ mount_partitions() {
     grep ' / ' /proc/mounts | grep -qv 'rootfs' || grep -q ' /system_root ' /proc/mounts \
     && SYSTEM_ROOT=true || SYSTEM_ROOT=false
   fi
-  [ -L /system/vendor ] && mount_ro_ensure vendor$SLOT /vendor
+  # /vendor is used only on some older devices for recovery AVBv1 signing so is not critical if fails
+  [ -L /system/vendor ] && mount_name vendor$SLOT /vendor '-o ro'
   $SYSTEM_ROOT && ui_print "- Device is system-as-root"
 
   # Allow /system/bin commands (dalvikvm) on Android 10+ in recovery
   $BOOTMODE || mount_apex
-
-  # Mount persist partition in recovery
-  if ! $BOOTMODE && [ ! -z $PERSISTDIR ]; then
-    # Try to mount persist
-    PERSISTDIR=/persist
-    mount_name persist /persist
-    if ! is_mounted /persist; then
-      # Fallback to cache
-      mount_name "cache cac" /cache
-      is_mounted /cache && PERSISTDIR=/cache || PERSISTDIR=
-    fi
-  fi
 }
 
 # loop_setup <ext4_img>, sets LOOPDEV
@@ -348,11 +353,12 @@ get_flags() {
       KEEPVERITY=false
     fi
   fi
+  ISENCRYPTED=false
+  grep ' /data ' /proc/mounts | grep -q 'dm-' && ISENCRYPTED=true
+  [ "$(getprop ro.crypto.state)" = "encrypted" ] && ISENCRYPTED=true
   if [ -z $KEEPFORCEENCRYPT ]; then
-    grep ' /data ' /proc/mounts | grep -q 'dm-' && FDE=true || FDE=false
-    [ -d /data/unencrypted ] && FBE=true || FBE=false
     # No data access means unable to decrypt in recovery
-    if $FDE || $FBE || ! $DATA; then
+    if $ISENCRYPTED || ! $DATA; then
       KEEPFORCEENCRYPT=true
       ui_print "- Encrypted data, keep forceencrypt"
     else
@@ -365,15 +371,15 @@ get_flags() {
 find_boot_image() {
   BOOTIMAGE=
   if $RECOVERYMODE; then
-    BOOTIMAGE=`find_block recovery_ramdisk$SLOT recovery sos`
+    BOOTIMAGE=`find_block recovery_ramdisk$SLOT recovery$SLOT sos`
   elif [ ! -z $SLOT ]; then
     BOOTIMAGE=`find_block ramdisk$SLOT recovery_ramdisk$SLOT boot$SLOT`
   else
-    BOOTIMAGE=`find_block ramdisk recovery_ramdisk kern-a android_boot kernel boot lnx bootimg boot_a`
+    BOOTIMAGE=`find_block ramdisk recovery_ramdisk kern-a android_boot kernel bootimg boot lnx boot_a`
   fi
   if [ -z $BOOTIMAGE ]; then
     # Lets see what fstabs tells me
-    BOOTIMAGE=`grep -v '#' /etc/*fstab* | grep -E '/boot[^a-zA-Z]' | grep -oE '/dev/[a-zA-Z0-9_./-]*' | head -n 1`
+    BOOTIMAGE=`grep -v '#' /etc/*fstab* | grep -E '/boot(img)?[^a-zA-Z]' | grep -oE '/dev/[a-zA-Z0-9_./-]*' | head -n 1`
   fi
 }
 
@@ -396,34 +402,13 @@ flash_image() {
     [ $img_sz -gt $blk_sz ] && return 1
     eval $CMD1 | eval $CMD2 | cat - /dev/zero > "$2" 2>/dev/null
   elif [ -c "$2" ]; then
-    flash_eraseall "$2"
-    eval $CMD1 | eval $CMD2 | nandwrite -p "$2" -
+    flash_eraseall "$2" >&2
+    eval $CMD1 | eval $CMD2 | nandwrite -p "$2" - >&2
   else
     ui_print "- Not block or char device, storing image"
     eval $CMD1 | eval $CMD2 > "$2" 2>/dev/null
   fi
   return 0
-}
-
-patch_dtb_partitions() {
-  local result=1
-  cd $MAGISKBIN
-  for name in dtb dtbo; do
-    local IMAGE=`find_block $name$SLOT`
-    if [ ! -z $IMAGE ]; then
-      ui_print "- $name image: $IMAGE"
-      if ./magiskboot dtb $IMAGE patch dt.patched; then
-        result=0
-        ui_print "- Backing up stock $name image"
-        cat $IMAGE > stock_${name}.img
-        ui_print "- Flashing patched $name"
-        cat dt.patched /dev/zero > $IMAGE
-        rm -f dt.patched
-      fi
-    fi
-  done
-  cd /
-  return $result
 }
 
 # Common installation script for flash_script.sh and addon.d.sh
@@ -437,8 +422,10 @@ install_magisk() {
     BOOTIMAGE=boot.img
   fi
 
-  eval $BOOTSIGNER -verify < $BOOTIMAGE && BOOTSIGNED=true
-  $BOOTSIGNED && ui_print "- Boot image is signed with AVB 1.0"
+  if [ $API -ge 21 ]; then
+    eval $BOOTSIGNER -verify < $BOOTIMAGE && BOOTSIGNED=true
+    $BOOTSIGNED && ui_print "- Boot image is signed with AVB 1.0"
+  fi
 
   $IS64BIT && mv -f magiskinit64 magiskinit 2>/dev/null || rm -f magiskinit64
 
@@ -450,18 +437,11 @@ install_magisk() {
 
   # Restore the original boot partition path
   [ "$BOOTNAND" ] && BOOTIMAGE=$BOOTNAND
-
-  if ! flash_image new-boot.img "$BOOTIMAGE"; then
-    ui_print "- Compressing ramdisk to fit in partition"
-    ./magiskboot cpio ramdisk.cpio compress
-    ./magiskboot repack "$BOOTIMAGE"
-    flash_image new-boot.img "$BOOTIMAGE" || abort "! Insufficient partition size"
-  fi
+  flash_image new-boot.img "$BOOTIMAGE" || abort "! Insufficient partition size"
 
   ./magiskboot cleanup
   rm -f new-boot.img
 
-  patch_dtb_partitions
   run_migrations
 }
 
@@ -480,6 +460,7 @@ sign_chromeos() {
 remove_system_su() {
   if [ -f /system/bin/su -o -f /system/xbin/su ] && [ ! -f /su/bin/su ]; then
     ui_print "- Removing system installed root"
+    blockdev --setrw /dev/block/mapper/system$SLOT 2>/dev/null
     mount -o rw,remount /system
     # SuperSU
     if [ -e /system/bin/.ext/.su ]; then
@@ -570,7 +551,7 @@ run_migrations() {
 
   # Stock backups
   LOCSHA1=$SHA1
-  for name in boot dtb dtbo; do
+  for name in boot dtb dtbo dtbs; do
     BACKUP=/data/adb/magisk/stock_${name}.img
     [ -f $BACKUP ] || continue
     if [ $name = 'boot' ]; then
@@ -581,6 +562,41 @@ run_migrations() {
     cp $BACKUP $TARGET
     rm -f $BACKUP
     gzip -9f $TARGET
+  done
+}
+
+copy_sepolicy_rules() {
+  # Remove all existing rule folders
+  rm -rf /data/unencrypted/magisk /cache/magisk /metadata/magisk /persist/magisk /mnt/vendor/persist/magisk
+
+  # Find current active RULESDIR
+  local RULESDIR
+  local active_dir=$(magisk --path)/.magisk/mirror/sepolicy.rules
+  if [ -e $active_dir ]; then
+    RULESDIR=$(readlink -f $active_dir)
+  elif [ -d /data/unencrypted ] && ! grep ' /data ' /proc/mounts | grep -q 'dm-'; then
+    RULESDIR=/data/unencrypted/magisk
+  elif grep -q ' /cache ' /proc/mounts; then
+    RULESDIR=/cache/magisk
+  elif grep -q ' /metadata ' /proc/mounts; then
+    RULESDIR=/metadata/magisk
+  elif grep -q ' /persist ' /proc/mounts; then
+    RULESDIR=/persist/magisk
+  elif grep -q ' /mnt/vendor/persist ' /proc/mounts; then
+    RULESDIR=/mnt/vendor/persist/magisk
+  else
+    return
+  fi
+
+  # Copy all enabled sepolicy.rule
+  for r in /data/adb/modules*/*/sepolicy.rule; do
+    [ -f "$r" ] || continue
+    local MODDIR=${r%/*}
+    [ -f $MODDIR/disable ] && continue
+    [ -f $MODDIR/remove ] && continue
+    local MODNAME=${MODDIR##*/}
+    mkdir -p $RULESDIR/$MODNAME
+    cp -f $r $RULESDIR/$MODNAME/sepolicy.rule
   done
 }
 
@@ -629,8 +645,6 @@ is_legacy_script() {
 
 # Require OUTFD, ZIPFILE to be set
 install_module() {
-  local PERSISTDIR=/sbin/.magisk/mirror/persist
-
   rm -rf $TMPDIR
   mkdir -p $TMPDIR
 
@@ -649,11 +663,12 @@ install_module() {
   $BOOTMODE && MODDIRNAME=modules_update || MODDIRNAME=modules
   local MODULEROOT=$NVBASE/$MODDIRNAME
   MODID=`grep_prop id $TMPDIR/module.prop`
-  MODPATH=$MODULEROOT/$MODID
   MODNAME=`grep_prop name $TMPDIR/module.prop`
+  MODAUTH=`grep_prop author $TMPDIR/module.prop`
+  MODPATH=$MODULEROOT/$MODID
 
   # Create mod paths
-  rm -rf $MODPATH 2>/dev/null
+  rm -rf $MODPATH
   mkdir -p $MODPATH
 
   if is_legacy_script; then
@@ -676,7 +691,7 @@ install_module() {
     ui_print "- Setting permissions"
     set_permissions
   else
-    print_title "$MODNAME"
+    print_title "$MODNAME" "by $MODAUTH"
     print_title "Powered by Magisk"
 
     unzip -o "$ZIPFILE" customize.sh -d $MODPATH >&2
@@ -706,17 +721,15 @@ install_module() {
   fi
 
   # Copy over custom sepolicy rules
-  if [ -f $MODPATH/sepolicy.rule -a -e $PERSISTDIR ]; then
-    ui_print "- Installing custom sepolicy patch"
-    PERSISTMOD=$PERSISTDIR/magisk/$MODID
-    mkdir -p $PERSISTMOD
-    cp -af $MODPATH/sepolicy.rule $PERSISTMOD/sepolicy.rule
+  if [ -f $MODPATH/sepolicy.rule ]; then
+    ui_print "- Installing custom sepolicy rules"
+    copy_sepolicy_rules
   fi
 
   # Remove stuffs that don't belong to modules
   rm -rf \
   $MODPATH/system/placeholder $MODPATH/customize.sh \
-  $MODPATH/README.md $MODPATH/.git* 2>/dev/null
+  $MODPATH/README.md $MODPATH/.git*
 
   cd /
   $BOOTMODE || recovery_cleanup
@@ -734,7 +747,6 @@ install_module() {
 [ -z $BOOTMODE ] && ps -A 2>/dev/null | grep zygote | grep -qv grep && BOOTMODE=true
 [ -z $BOOTMODE ] && BOOTMODE=false
 
-MAGISKTMP=/sbin/.magisk
 NVBASE=/data/adb
 TMPDIR=/dev/tmp
 

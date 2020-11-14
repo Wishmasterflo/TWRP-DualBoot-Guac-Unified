@@ -243,8 +243,15 @@ if [ -z "$layout" ]; then
       ui_print "  Vol+ a/b/c, Vol- a/b only"
       chooseport && layout="a/b/c" || layout="a/b"
       [ "$layout" == "a/b/c" ] && select_size
+	  ui_print " "
+	  ui_print "- Mount Android Data to Common Data partition?"
+	  ui_print "  Vol+ yes, Vol- no"
+	  if chooseport; then
+	  cp -f $tmp/init.mount_androiddata.sh /tmp/init.mount_androiddata.sh 
+	  fi
     else
       layout="stock"
+	  fi
     fi
     select_format
   fi
@@ -298,8 +305,6 @@ if ($magiska || $magiskb) && ! $mountdata; then
   sleep 2
 fi
 
-fi
-
 ui_print " "
 ui_print "- Selected Options"
 $FAILSAFEMODE && ui_print "  Failsafe: Applied" || ui_print "  Failsafe: Not Applied"
@@ -308,19 +313,19 @@ $KEEPVERITY && ui_print "  Dm-Verity: Enabled/Not Changed" || ui_print "  Dm-Ver
 if [ "$layout" == "stock" ]; then
   $format && { ui_print "  Format Data: Yes"; ui_print "  Userdata: $typea"; } || ui_print "  Format Data: No"
   $feca && ui_print "  Forced Encryption: Enabled/Not Changed" || ui_print "  Forced Encryption: Disabled"
-  $magiska && ui_print "  Root: Magisk" || ui_print "  Root: None"
+  $magiska && ui_print "  Root: Magisk 21.1" || ui_print "  Root: None"
 else
   $format && ui_print "  Format Data: Yes" || ui_print "  Format Data: No"
   ui_print "  Slot A:"
   [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
   $format && ui_print "    Userdata: $typea"
   $feca && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
-  $magiska && ui_print "    Root: Magisk" || ui_print "    Root: None"
+  $magiska && ui_print "    Root: Magisk 21.1" || ui_print "    Root: None"
   ui_print "  Slot B:"
   [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
   $format && ui_print "    Userdata: $typeb"
   $fecb && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
-  $magiskb && ui_print "    Root: Magisk" || ui_print "    Root: None"
+  $magiskb && ui_print "    Root: Magisk 21.1" || ui_print "    Root: None"
   if [ "$layout" == "a/b/c" ]; then
     ui_print "  Slot C:"
     ui_print "    Common Data: $typec"
@@ -412,6 +417,12 @@ for slot_select in active inactive; do
       [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
     fi
 
+    if [ -f /tmp/init.mount_androiddata.sh ]; then 
+	ui_print " Mounting Android Data to commondata partition"
+	cp -f /tmp/init.mount_androiddata.sh  /data/adb/service.d/
+    set_perm /data/adb/service.d/init.mount_androiddata.sh 0 2000 0755 u:object_r:shell_exec:s0
+    fi 
+
     if ! $KEEPVERITY; then
       rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
      
@@ -488,6 +499,12 @@ for slot_select in active inactive; do
    if $mountdata; then
       [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
     fi
+
+    if [ -f /tmp/init.mount_androiddata.sh ]; then 
+	ui_print " Mounting Android Data to commondata partition"
+	cp -f /tmp/init.mount_androiddata.sh  /data/adb/service.d/
+    set_perm /data/adb/service.d/init.mount_androiddata.sh 0 2000 0755 u:object_r:shell_exec:s0
+    fi 
 
     if ! $KEEPVERITY; then
       rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
