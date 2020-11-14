@@ -117,11 +117,6 @@ case $((STATUS & 3)) in
     ;;
 esac
 
-if [ $((STATUS & 8)) -ne 0 ]; then
-  # Possibly using 2SI, export env var
-  export TWOSTAGEINIT=true
-fi
-
 ##################
 # Ramdisk Patches
 ##################
@@ -182,6 +177,9 @@ ui_print "- Repacking boot image"
 
 # Sign chromeos boot
 $CHROMEOS && sign_chromeos
+
+# Copy existing rules for migration
+$BOOTMODE && copy_sepolicy_rules
 
 # Reset any error code
 true
