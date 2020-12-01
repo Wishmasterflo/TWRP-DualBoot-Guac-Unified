@@ -313,19 +313,19 @@ $KEEPVERITY && ui_print "  Dm-Verity: Enabled/Not Changed" || ui_print "  Dm-Ver
 if [ "$layout" == "stock" ]; then
   $format && { ui_print "  Format Data: Yes"; ui_print "  Userdata: $typea"; } || ui_print "  Format Data: No"
   $feca && ui_print "  Forced Encryption: Enabled/Not Changed" || ui_print "  Forced Encryption: Disabled"
-  $magiska && ui_print "  Root: Magisk 21.1" || ui_print "  Root: None"
+  $magiska && ui_print "  Root: Magisk" || ui_print "  Root: None"
 else
   $format && ui_print "  Format Data: Yes" || ui_print "  Format Data: No"
   ui_print "  Slot A:"
   [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
   $format && ui_print "    Userdata: $typea"
   $feca && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
-  $magiska && ui_print "    Root: Magisk 21.1" || ui_print "    Root: None"
+  $magiska && ui_print "    Root: Magisk" || ui_print "    Root: None"
   ui_print "  Slot B:"
   [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
   $format && ui_print "    Userdata: $typeb"
   $fecb && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
-  $magiskb && ui_print "    Root: Magisk 21.1" || ui_print "    Root: None"
+  $magiskb && ui_print "    Root: Magisk" || ui_print "    Root: None"
   if [ "$layout" == "a/b/c" ]; then
     ui_print "  Slot C:"
     ui_print "    Common Data: $typec"
@@ -476,7 +476,9 @@ for slot_select in active inactive; do
 
     # Un/Install Magisk, patch verity otherwise since we're likely modifying system
     if $magisk; then
-      . magisk.sh
+	cp -rf $tmp/magiskcommon_a10/* $tmp/magiskcommon/
+	cp -rf $tmp/tools_a10/* $tmp/tools
+    . magisk.sh
     else
       ui_print "  Patching ramdisk"
       magiskboot cpio ramdisk.cpio patch
@@ -491,6 +493,8 @@ for slot_select in active inactive; do
     binary_patches
     patch_dtb_partitions
     $magiskdata && run_migrations
+	cp -f $tmp/tools/bootctl  /system_root/system/bin/
+    set_perm /system_root/system/bin/bootctl 0 2000 0755 u:object_r:shell_exec:s0
   else
   
  # Check for installed Android 11 ROM
@@ -559,24 +563,27 @@ for slot_select in active inactive; do
 
     # Un/Install Magisk, patch verity otherwise since we're likely modifying system
     if $magisk; then
-	ui_print "  Android 11 ROM. Please flash Magisk manually!" 
-	# . magisk.sh
+	ui_print "  Android 11 ROM. Magisk Canary 20422 will be installed." 
+	cp -rf $tmp/magiskcommon_a11/* $tmp/magiskcommon/
+	cp -rf $tmp/tools_a11/* $tmp/tools
+	. magisk.sh
     else
-	 ui_print "  Magisk will not be installed!" 
-    #  ui_print "  Patching ramdisk"
-    #  magiskboot cpio ramdisk.cpio patch
-    #  rm -rf \
-    #  /cache/*magisk* /cache/unblock /data/*magisk* /data/cache/*magisk* /data/property/*magisk* \
-    #  /data/Magisk.apk /data/busybox /data/custom_ramdisk_patch.sh /data/adb/*magisk* \
-    #  /data/adb/post-fs-data.d /data/adb/service.d /data/adb/modules* $PERSISTDIR/magisk \
-    #  /system/addon.d/99-magisk.sh \
-    #  /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
+     ui_print "  Patching ramdisk"
+     magiskboot cpio ramdisk.cpio patch
+     rm -rf \
+     /cache/*magisk* /cache/unblock /data/*magisk* /data/cache/*magisk* /data/property/*magisk* \
+     /data/Magisk.apk /data/busybox /data/custom_ramdisk_patch.sh /data/adb/*magisk* \
+     /data/adb/post-fs-data.d /data/adb/service.d /data/adb/modules* $PERSISTDIR/magisk \
+     /system/addon.d/99-magisk.sh \
+     /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
     fi
   fi
   
     binary_patches
     patch_dtb_partitions
     $magiskdata && run_migrations
+	cp -f $tmp/tools/bootctl  /system_root/system/bin/
+    set_perm /system_root/system/bin/bootctl 0 2000 0755 u:object_r:shell_exec:s0  
  
  if ! [ -f /system/build.prop ]; then 
  
