@@ -60,18 +60,9 @@ Make sure you have a backup and know how to reparititon your phone back to stock
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
 ## Limitation
-* If you set a password, regardless of encryption status, it'll corrupt the other slot if it's also password protected. 
-* Note that some roms set one automatically
-Either don't use a password on one slot, or leave one slot (I'll use 'a' in this example) **unencrypted** and:
-  * Setup rom, password, and everything on slot a
-  * Boot back into twrp, choose common data as storage, and backup userdata (if not using a/b/c layout, backup TWRP folder to your computer)
-  * Setup rom, password, and everything on the other slot (b)
-  * Boot back into twrp, switch back to slot a (reboot back into twrp), and restore the twrp backup
-* If you messed this up and are unencrypted - delete these files in /data/system if present: locksettings.db gatekeeper.password.key password.key gatekeeper.pattern.key pattern.key gatekeeper.gesture.key gesture.key
-* If you messed this up and are encrypted - you lost the data on that slot:
-  * Unmount metadata in twrp gui
-  * Format metadata with this command: `mke2fs -t ext4 -b 4096 /dev/block/sda$metadata_partnum` where *metadata_partnum* is the partition number of the current metadata partition (you can find this with `sgdisk /dev/block/sda --print`). DO NOT FORGET THE PARTITION NUMBER. If you do, you'll format all of sda which results in a brick
-  * Reboot into twrp and format data in gui
+* As of now it seems only to be possible to set a PIN/password on OSS and not on any custom ROM! 
+* I had no luck in getting that fixed. Seems that it is something device specific to our Oneplus 6 series causing that this is not working on any other ROM than OOS
+* since it was working on the DUALBOOT TWRP for the Oneplus 7 where I took over this Project from in the beginnig.
 
 ## Some other features/notes
 * Can choose between stock layout, a/b userdata, or a/b/c userdata where 'c' is a common data partition that'll show up in both roms - it's quite handy
