@@ -12,14 +12,9 @@ If you want to disable encryption
 
 Which file system to have on the slot (F2FS or EXT4)
 
-If you want to install Magisk (this will Install Magisk 21.1 as of now and is needed for Common Data mounting!) You can install another needed Magisk Version afterwards
-
+If you want to install Magisk (this will Install Magisk 21.1 for Android 10 or lower and Magisk Canary 20422 for Android 11 and is needed for Common Data mounting!)
 
 You need to choose to install Magisk from the Dualboot-TWRP while flashing if you want to use the Common Data partition. The way I have implemented this now needs to use Magisk!
-
-That Magisk from this Dualboot-TWRP will install Magisk 21.1 but you can afterwards just install another Magisk Version per slot like a Canary Version!
-
-For Android 11 almost only this Magisk Canary 20422 is working right now.
 
 
 Dualboot TWRP quickmode/fastmode options which can be provided directly through the Filename:
