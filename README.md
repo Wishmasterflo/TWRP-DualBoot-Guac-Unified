@@ -60,7 +60,7 @@ Make sure you have a backup and know how to reparititon your phone back to stock
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
 ## Limitation
-* As of now it seems only to be possible to set a PIN/password on OSS and not on any custom ROM! 
+* As of now it seems only to be possible to set a PIN/password on OOS and not on any custom ROM! 
 * I had no luck in getting that fixed. Seems that it is something device specific to our Oneplus 6 series causing that this is not working on any other ROM than OOS
 * since it was working on the DUALBOOT TWRP for the Oneplus 7 where I took over this Project from in the beginnig.
 
