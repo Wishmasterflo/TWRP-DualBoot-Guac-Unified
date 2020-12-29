@@ -32,7 +32,14 @@
 # Pure bash dirname implementation
 getdir() {
   case "$1" in
-    */*) dir=${1%/*}; [ -z $dir ] && echo "/" || echo $dir ;;
+    */*)
+      dir=${1%/*}
+      if [ -z $dir ]; then
+        echo "/"
+      else
+        echo $dir
+      fi
+    ;;
     *) echo "." ;;
   esac
 }
@@ -177,9 +184,6 @@ ui_print "- Repacking boot image"
 
 # Sign chromeos boot
 $CHROMEOS && sign_chromeos
-
-# Copy existing rules for migration
-$BOOTMODE && copy_sepolicy_rules
 
 # Reset any error code
 true

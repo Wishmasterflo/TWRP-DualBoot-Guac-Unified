@@ -22,7 +22,7 @@ Flashing instructions:
 * Do a FORMAT Data on that slot!
 * Reboot System
 * Now your ROM on that slot should boot up.
-* Only set a PIN/password in one of the ROMs leave the other without PIN/password!!!
+* It is only possible right now to set a PIN/password in OxygenOS in custom ROMs it is not possible to set a PIN/password!
 * To switch between your ROMS boot into TWRP and switch the Slot to the one you want to boot up.
 * Another method is to use the ROM Switcher shortcut Tool provided in the link below to reboot to the other ROM.
 * For updating a ROM only do that via TWRP not with the OTA function from the ROM as that will break the Dualboot then!

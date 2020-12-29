@@ -7,15 +7,17 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6 series now.
 
 ## Changelog
+* 12/29/2020 - 3.4.0-0 v4
+  * Updated with Magisk 21.2
+  * Removed Magisk Canary 20422 since Magisk 21.2 is now working with TWRP and Android 11
+
 * 12/01/2020 - 3.4.0-0 v3.3
   * Added to flash Magisk Canary 20422 on Android 11 automatically
   * Added mount file to mount Android Data to Commondata (still Beta/Test)
 
-
 * 11/14/2020 - 3.4.0-0 v3.2
   * Updated with Magisk 21.1
   * Prepared script for some future features
-
 
 * 10/30/2020 - 3.4.0-0 v3.1
   * Removed unnessessary stuff which was left from the Oneplus 7 devices

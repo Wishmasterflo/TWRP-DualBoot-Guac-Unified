@@ -2,6 +2,10 @@
 Changelog
 ---------
 
+12/29/2020 - 3.4.0-0 v4
+- Updated with Magisk 21.2
+- Removed Magisk Canary 20422 since Magisk 21.2 is now working with TWRP and Android 11
+
 12/01/2020 - 3.4.0-0 v3.3
 - Added to flash Magisk Canary 20422 on Android 11 automatically
 - Added mount file to mount Android Data to Commondata (still Beta/Test)
