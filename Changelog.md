@@ -6,7 +6,7 @@ Changelog
 - Cleaned up stuff which is not needed anymore
 - Fixed bugs that were existing in the repartitioning part
 - Updated with official TWRP 3.5.0-9 and added black Theme to it
-- Added option to create a seperate partition called SDCARD when on Stock Layout
+- Added option to create a seperate partition called StockSD when on Stock Layout
 
 
 12/29/2020 - 3.4.0-0 v4
