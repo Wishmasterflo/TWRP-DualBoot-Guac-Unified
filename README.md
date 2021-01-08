@@ -1,4 +1,4 @@
-# TWRP-DualBoot-fajita-enchilada
+# TWRP-DualBoot for the Oneplus 6 series
 
 A big thanks to Zackptg5. The master of this mod from the beginning. I just adjusted this now to work on the Oneplus 6 series phones.
 
@@ -7,6 +7,12 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6 series now.
 
 ## Changelog
+* 01/08/2021 - 3.5.0-9 v4.1
+  * Cleaned up stuff which is not needed anymore
+  * Fixed bugs that were existing in the repartitioning part
+  * Updated with official TWRP 3.5.0-9 and added black Theme to it
+  * Added option to create a seperate partition called SDCARD when on Stock Layout
+
 * 12/29/2020 - 3.4.0-0 v4
   * Updated with Magisk 21.2
   * Removed Magisk Canary 20422 since Magisk 21.2 is now working with TWRP and Android 11
@@ -58,29 +64,28 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 ## Disclaimer
 * I am not responsible for anything bad that happens to your device. Only experienced users should be using this mod
 * This is no walk in the park mod. Although I have extensively tested it, there is always the possibility of a brick with anything that involves repartitioning. 
-Make sure you have a backup and know how to reparititon your phone back to stock (there's a guide at the end of this readme with the basics)
+* Always make a Backup of all your Data before using this.
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
 ## Limitation
-* As of now it seems only to be possible to set a PIN/password on OOS and not on any custom ROM! 
+* As of now it is only possible to set a PIN/password on OOS and not on any custom ROMs! 
 * I had no luck in getting that fixed. Seems that it is something device specific to our Oneplus 6 series causing that this is not working on any other ROM than OOS
-* since it was working on the DUALBOOT TWRP for the Oneplus 7 where I took over this Project from in the beginnig.
+* since it was working on the DUALBOOT-TWRP for the Oneplus 7 where I took over this Project from in the beginnig.
 
 ## Some other features/notes
-* Can choose between stock layout, a/b userdata, or a/b/c userdata where 'c' is a common data partition that'll show up in both roms - it's quite handy
+* Can choose between stock layout, a/b userdata, a/b/c userdata where 'c' is a common data partition that'll show up in both roms, or StockSD layout which will create a seperate partion on Stock layout
 * Option to choose between ext4 and f2fs
 * Disables verity - fstabs are modified for dual boot and so this is a must unless you choose stock layout in which case it's optional
 * Option to disable forced encryption
 * Option to install magisk
 
 ## Common Data
-* If you choose a/b/c layout - you'll have a/b userdata, but you'll also get a 3rd userdata partition I call 'Common Data'
-* The name 'Common Data' gives away its purpose - to store files that you'll access on both slots/roms. So stuff like zips, pictures, music, TWRP backups, etc.
+* If you choose a/b/c layout - you'll have a/b userdata, but you'll also get a 3rd userdata partition called 'Common Data'
+* The name 'Common Data' gives away its purpose - to store files that you'll access on both slots/roms. So stuff like zips, Pictures, Music, etc.
 * In TWRP, this shows up as another storage option for backup/restore and on your pc as well - your phone will have 'Common Storage' and 'Internal Storage'
-* In order to be accessible when booted, some parts of the system are modified so that the it'll be accessible WITHOUT root by the following mechanisms:
   * The common data partition is mounted to /sdcard/CommonData
   * .nomedia file is placed in CommonData so files in it won't be picked up twice if you decide to mount over internal storage as outlined below
-  * Furthermore, if your use case is like mine where my music files are in common data, you can make 'mounts.txt' file in /datacommon containing a list of every FOLDER to mount directly over top of sdcard. So for example:<br/>
+  * Furthermore, if your use case is like mine where my music files are in common data, you can make a 'mounts.txt' file in /datacommon containing a list of every FOLDER to mount directly over top of sdcard. So for example:<br/>
   /datacommon/Music -> /sdcard/Music
     * This of course mounts over anything there (overwrites it for as long as it's mounted) so make sure that you don't have the same folder in both datacommon and regular data
     * Note that there are 3 exceptions to this folder mounting rule:
@@ -98,10 +103,9 @@ Make sure you have a backup and know how to reparititon your phone back to stock
 ## Flashing Instructions
 * You MUST be booted into TWRP already when flashing this zip.
 * Since this modifies data - the zip CANNOT be on sdcard or data at all UNLESS you do not want to repartition/format
-  * If you flash from data, the zip will copy itself to /tmp and instruct you to flash it from there OR you can just install twrp/magisk/disver-fec
-  * You could do the above or copy it to a place like /dev or /tmp and flash it from there
-  * Alternatively, you can adb sideload it
-* Read through ALL the prompts - there's lots of options :)
+  * If you flash from data, the zip will copy itself to /tmp and instruct you to flash it from there
+* Read through ALL the prompts - there's lots of options. 
+* See more info here: https://github.com/Wishmasterflo/TWRP-DualBoot-Guac-Unified/blob/master/Text.md
 
 ## How to Flash Roms
 * Nothing changes here except ONLY FLASH IN TWRP
@@ -116,46 +120,7 @@ Make sure you have a backup and know how to reparititon your phone back to stock
   * Flash everything else
 
 ## Help! I Can't Boot!
-* Usually this is because you switched roms without formatting data first. This should be flashing 101 but we all forget sometimes. Plus this slot stuff can get confusing
-* If it only happens with a/b/c and not any other layout, there's a good chance it's selinux related. Try setting selinux to permissive at kernel level [with this mod](https://zackptg5.com/android.php#ksp) ([source here](https://github.com/Zackptg5/Kernel-Sepolicy-Patcher)).
-
-
-## How to Manually Repartition Back to Stock
-* In the event any step in the repartioning fails, the entire installer aborts. The good news is that this prevents a potential brick. The bad is that you need to manually revert back
-* Boot into twrp. If sgdisk is not present in sbin, grab it from this zip (in tools) and adb push it to /sbin and chmod +x it
-* `sgdisk /dev/block/sda --print` Note that /dev/block/sda is the block that userdata and metadata are stored on - no other block is touched by this mod. 
-This will show up the current partition scheme. Stock looks something like this (on OP7 Pro):
-```
-Number  Start (sector)    End (sector)  Size       Code  Name
-   1               6               7   8.0 KiB     FFFF  ssd
-   2               8            8199   32.0 MiB    FFFF  persist
-   3            8200            8455   1024.0 KiB  FFFF  misc
-   4            8456            8711   1024.0 KiB  FFFF  param
-   5            8712            8839   512.0 KiB   FFFF  keystore
-   6            8840            8967   512.0 KiB   FFFF  frp
-   7            8968           74503   256.0 MiB   FFFF  op2
-   8           74504           77063   10.0 MiB    FFFF  oem_dycnvbk
-   9           77064           79623   10.0 MiB    FFFF  oem_stanvbk
-  10           79624           79879   1024.0 KiB  FFFF  mdm_oem_dycnvbk
-  11           79880           80135   1024.0 KiB  FFFF  mdm_oem_stanvbk
-  12           80136           80263   512.0 KiB   FFFF  config
-  13           80264          969095   3.4 GiB     FFFF  system_a
-  14          969096         1857927   3.4 GiB     FFFF  system_b
-  15         1857928         1883527   100.0 MiB   FFFF  odm_a
-  16         1883528         1909127   100.0 MiB   FFFF  odm_b
-  17         1909128         1913223   16.0 MiB    FFFF  metadata
-  18         1913224         1945991   128.0 MiB   FFFF  rawdump
-  19         1945992        61409274   226.8 GiB   FFFF  userdata
-```
-You may have different size userdata - mine is 256gb - depending on your device but that doesn't matter. You just need to see where they're located<br/>
-Take note of the **number** (I'll call *userdata_num* for the sake of this tutorial) and **start sector** (*userdata_start*) for the first partition AFTER rawdump, and the **end sector** (*userdata_end*) of the last parititon on sda
-
-* `sgdisk /dev/block/sda --change-name=17:metadata` - renames metadata partition back to non-ab stock
-* `sgdisk /dev/block/sda --delete=19` - this deletes the entire partition - use this command for each user/metadata partition after rawdump (ones generated by this zip)
-* `sgdisk /dev/block/sda --new=$userdata_num:$userdata_start:$userdata_end --change-name=$userdata_num:userdata` - this creates the new userdata partition
-* Final step is to format the new userdata partition: `mke2fs -t ext4 -b 4096 /dev/block/sda$userdata_num $userdata_size` - where *userdata_size* can be calculated with this shell command: `sgdisk /dev/block/sda --print | grep "^ *$userdata_num" | awk '{print $3-$2+1}'`
-  * MAKE SURE YOU VERIFY ALL VARIABLES HERE ARE SET PROPERLY - if you mess this up, you could format all of sda resulting in a brick
-* Run `sgdisk /dev/block/sda --print` again to make sure everything is correct and then reboot back into twrp
+* Usually this is because you switched roms without formatting data on that slot.
 
 
 ## Credits

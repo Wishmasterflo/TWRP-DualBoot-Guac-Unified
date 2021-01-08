@@ -3,20 +3,22 @@ During the Dualboot-TWRP flashing you get a lot of options to choose from.
 
 You can select between A/B/(C) partition layout or stock partition layout (Dualbooting is only possible with A/B or A/B/C partition Layout not with Stock Layout!!)
 
-If you want to have a Common Data partition (C) or not. If not the whole storage will be splitted to Data_A and Data_B partitions and you have a A/B layout for dualboot
+If you want to have a extra partition (here called STOCKSD) on Stock Layout. That partition will be created with 1/3 of the storage size
+
+If you want to have a Common Data partition (C) on A/B/(C) Layout or not. If not the whole storage will be splitted to Data_A and Data_B partitions and you have a A/B layout for dualboot
 
 The size of each data partition A and B (16 GB or 24 GB for the 64 GB devices, 16 GB, 32 GB, 40 GB, or 45 GB for the 128 GB devices and  16 GB , 32 GB , 64 GB , or 96 GB for the 256 GB devices) 
 (the Common Data partition will get the rest of the space left)
 
 If you want to disable encryption
 
-Which file system to have on the slot (F2FS or EXT4)
+Which file system to have on the slot and Common Data partition (F2FS or EXT4). The StockSD partition will get created as ext4 partition
 
-If you want to install Magisk (this will Install Magisk 21.2)
-You need to choose to install Magisk from the Dualboot-TWRP while flashing if you want to use the Common Data partition. The way I have implemented this now needs to use Magisk!
+If you want to install Magisk (this will Install the latest Version of Magisk)
+You need to choose to install Magisk from the Dualboot-TWRP while flashing if you want to use the Common Data or StockSD partition. The way I have implemented this now needs to use Magisk!
 
 
-Dualboot TWRP quickmode/fastmode options which can be provided directly through the Filename:
+Dualboot-TWRP quickmode/fastmode options which can be provided directly through the Filename:
 
 Dualboot_TWRP_fajita_enchilada_v3-fast-fec.ab-su.ab.zip
 
@@ -41,7 +43,7 @@ The "ab" are the slots and these in small letters like a b means that that optio
 When having "AB" in big letters means it will get installed/activated on that slot.
 
 
-So when having "fec.Ab-su.AB" Force encryption will be enabled on slot A but not on slot b. And Magisk will be installed on both A and B.
+When having "fec.Ab-su.AB" Force encryption will be enabled on slot A but not on slot b. And Magisk will be installed on both A and B.
 
 
 There is also a "failsafe" mode which can be activated when adding "failsafe" to the filename.

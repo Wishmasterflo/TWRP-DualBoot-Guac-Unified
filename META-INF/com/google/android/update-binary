@@ -1,6 +1,6 @@
 #!/sbin/sh
 # TWRP A/B Installer Backend
-# by Wishmasterflo, Zackptg5, Osm0sis, Dees_Troy, Topjohnwu, and CosmicDan
+# by Wishmasterflo. Adopted from Zackptg5, and adjusted to the Oneplus 6 series with new Features and Updates
 
 # Functions needed early
 ui_print() { $BOOTMODE && echo "$1" || echo -e "ui_print $1\nui_print" >> $OUTFD; }
@@ -47,8 +47,6 @@ ui_print "#               by Zackptg5               #"
 ui_print "#         adjusted by Wishmasterflo       #"
 ui_print "#            for the Oneplus 6t           #"
 ui_print "###########################################"
-ui_print "#        TWRP build by Mauronofrio        #"
-ui_print "###########################################"
 ui_print " "
 
 set -x
@@ -77,7 +75,7 @@ for i in OnePlus6t fajita; do
       supported=true
       actualsize=$(sgdisk --print /dev/block/sda | awk '/^Disk \/dev\/block\/sda/{printf "%d", $5}')
       [ $actualsize -ge 128 ] && totsize=256 || totsize=128
-      ui_print "  $totsize gb device detected!"
+      ui_print "  $totsize GB device detected!"
       break 2
     fi
   done
@@ -114,6 +112,12 @@ if [ "$(sgdisk --print /dev/block/sda | grep -i userdata_a)" ]; then
   cursize=$(sgdisk --print /dev/block/sda | grep -i userdata_a | awk '{printf "%d", $4}')
   typea="$(blkid /dev/block/sda$(sgdisk --print /dev/block/sda | grep -i userdata_a | awk '{print $1}') | awk '{gsub("TYPE=|\"","",$3); print $3}')"
   typeb="$(blkid /dev/block/sda$(sgdisk --print /dev/block/sda | grep -i userdata_b | awk '{print $1}') | awk '{gsub("TYPE=|\"","",$3); print $3}')"
+  elif [ "$(sgdisk --print /dev/block/sda | grep -i stocksd)" ]; then
+   curlayout="stocksd"
+   cursize=$(sgdisk --print /dev/block/sda | grep -i userdata | awk '{printf "%d", $4}')
+   typea="$(blkid /dev/block/sda$(sgdisk --print /dev/block/sda | grep -i userdata | awk '{print $1}') | awk '{gsub("TYPE=|\"","",$3); print $3}')"
+   typeb="$typea"
+   typed="$(blkid /dev/block/sda$(sgdisk --print /dev/block/sda | grep -i stocksd | awk '{print $1}') | awk '{gsub("TYPE=|\"","",$3); print $3}')"
 else
   curlayout="stock"
   cursize=$(sgdisk --print /dev/block/sda | grep -i userdata | awk '{printf "%d", $4}')
@@ -146,7 +150,6 @@ done
 
 #failsafe mode, make sure reboot to same slot youre booted into already.
 ##reminder1 try another bootctl binary/ twrp's current binary seems unable to determine if a slot has booted successfully or is bootable. this makes the failsafe unable to make the correct decision on whether or not to run based on environment
-##reminder2 implement decision to make failsfe not apply in sideload until resolved, still leaves "fastboot boot twrp.img" potentially unsafe, but at least youre at the computer and can fix it
 if [ "$FAILSAFEMODE" = "true" ]; then
 	ui_print " "
 	ui_print " Executing Failsafe... "
@@ -176,8 +179,8 @@ case $ZIPFILE in
     ui_print "  due to repartitioning"
     ui_print " "
     ui_print "  If you don't want to repartition/format, continue"
-    ui_print "  Otherwise, the zip will copy itself to /tmp"
-    ui_print "  and you can flash it from there"
+    ui_print "  Otherwise select no and the zip will copy itself"
+    ui_print "  to /tmp and you can flash it from there"
     ui_print " "
     sleep 1
     ui_print "- Continue?"
@@ -189,7 +192,7 @@ case $ZIPFILE in
     else  
       cp -f "$ZIPFILE" "/tmp/$(basename "$ZIPFILE")"
       ui_print " "
-      ui_print "! Zip has been copied to /tmp - flash from there"
+      ui_print "! Zip has been copied to /tmp - flash it from there"
       exit 0
     fi
     ;;
@@ -224,7 +227,7 @@ fi
 
 if [ "$QUICKMODE" != "true" ]; then
 ui_print " "
-ui_print "- Current layout: $curlayout, userdata size: $cursize gb"
+ui_print "- Current layout: $curlayout, userdata size: $cursize GB"
 # Set new layout
 if [ -z "$layout" ]; then
   ui_print "  Keep current layout?"
@@ -243,14 +246,11 @@ if [ -z "$layout" ]; then
       ui_print "  Vol+ a/b/c, Vol- a/b only"
       chooseport && layout="a/b/c" || layout="a/b"
       [ "$layout" == "a/b/c" ] && select_size
-	  ui_print " "
-	  ui_print "- Mount Android Data to Common Data partition?"
+	 else
+      ui_print " "
+	  ui_print "- Have a SDCARD partition on Stock Layout?"
 	  ui_print "  Vol+ yes, Vol- no"
-	  if chooseport; then
-	  cp -f $tmp/init.mount_androiddata.sh /tmp/init.mount_androiddata.sh 
-	  fi
-    else
-      layout="stock"
+	  chooseport && layout="stocksd" || layout="stock" 
 	  fi
     fi
     select_format
@@ -270,7 +270,7 @@ export KEEPVERITY
 
 ui_print " "
 ui_print "- Forced Encryption: Keep as is or Disable?"
-if [ "$layout" != "stock" ]; then
+if [ "$layout" != "stock" ] && [ "$layout" != "stocksd" ]; then
   sleep 1
   ui_print "  Vol+ Do not change, Vol- Disable (recommended)"
   ui_print " "
@@ -291,6 +291,9 @@ ui_print "  Vol+ yes, Vol- no"
 if [ "$layout" == "stock" ]; then
   chooseport && magiska=true || magiska=false
   magiskb=$magiska
+elif [ "$layout" == "stocksd" ]; then
+  chooseport && magiska=true || magiska=false
+  magiskb=$magiska    
 else
   ui_print "  Slot a?"
   chooseport && magiska=true || magiska=false
@@ -314,22 +317,40 @@ if [ "$layout" == "stock" ]; then
   $format && { ui_print "  Format Data: Yes"; ui_print "  Userdata: $typea"; } || ui_print "  Format Data: No"
   $feca && ui_print "  Forced Encryption: Enabled/Not Changed" || ui_print "  Forced Encryption: Disabled"
   $magiska && ui_print "  Root: Magisk" || ui_print "  Root: None"
-else
+elif [ "$layout" == "stocksd" ]; then
+  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $(($size/3)) GB" || ui_print "  Userdata Size: $(($size/3)) GB"
+  [ $cursize != $size ] && ui_print "    StockSD Size: $stocksd -> $((actualsize-7-$size/3)) GB" || ui_print "  StockSD Size: $((actualsize-7-$size/3)) GB"
+  $format && { ui_print "  Format Data: Yes"; ui_print "  Userdata: $typea"; } || ui_print "  Format Data: No"
+  $feca && ui_print "  Forced Encryption: Enabled/Not Changed" || ui_print "  Forced Encryption: Disabled"
+  $magiska && ui_print "  Root: Magisk" || ui_print "  Root: None"
+elif  [ "$layout" == "a/b" ]; then
   $format && ui_print "  Format Data: Yes" || ui_print "  Format Data: No"
   ui_print "  Slot A:"
-  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
+  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $(($size/2)) GB" || ui_print "    Userdata Size: $(($size/2)) GB"
   $format && ui_print "    Userdata: $typea"
   $feca && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
   $magiska && ui_print "    Root: Magisk" || ui_print "    Root: None"
   ui_print "  Slot B:"
-  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size gb" || ui_print "    Userdata Size: $size gb"
+  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $(($size/2)) GB" || ui_print "    Userdata Size: $(($size/2)) GB"
+  $format && ui_print "    Userdata: $typeb"
+  $fecb && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
+  $magiskb && ui_print "    Root: Magisk" || ui_print "    Root: None"
+else
+  $format && ui_print "  Format Data: Yes" || ui_print "  Format Data: No"
+  ui_print "  Slot A:"
+  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size GB" || ui_print "    Userdata Size: $size GB"
+  $format && ui_print "    Userdata: $typea"
+  $feca && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
+  $magiska && ui_print "    Root: Magisk" || ui_print "    Root: None"
+  ui_print "  Slot B:"
+  [ $cursize != $size ] && ui_print "    Userdata Size: $cursize -> $size GB" || ui_print "    Userdata Size: $size GB"
   $format && ui_print "    Userdata: $typeb"
   $fecb && ui_print "    Forced Encryption: Enabled/Not Changed" || ui_print "    Forced Encryption: Disabled"
   $magiskb && ui_print "    Root: Magisk" || ui_print "    Root: None"
   if [ "$layout" == "a/b/c" ]; then
     ui_print "  Slot C:"
     ui_print "    Common Data: $typec"
-    [ $cursize != $size ] && ui_print "    Common Data Size: $comsize -> $((actualsize-7-$size*2)) gb" || ui_print "    Common Data Size: $comsize gb"
+    [ $cursize != $size ] && ui_print "    Common Data Size: $comsize -> $((actualsize-7-$size*2)) GB" || ui_print "    Common Data Size: $comsize GB"
   fi
 fi
 
@@ -343,8 +364,8 @@ chooseport && ui_print " " || { ui_print " "; ui_print "Exiting installer!"; exi
 fi
 ui_print "- Beginning install"
 
-# Patch TWRP if needed for slot userdata, patch commondata mount script
-if [ "$layout" != "stock" ]; then
+# Patch TWRP if needed for slot userdata, patch commondata mount script and StockSD mount script
+if [ "$layout" == "a/b" ]; then
   magiskboot cpio ramdisk-recovery.cpio "extract etc/recovery.wipe recovery.wipe"
   sed -i 's|^/dev/block/bootdevice/by-name/userdata$|/dev/block/bootdevice/by-name/userdata_a\n/dev/block/bootdevice/by-name/userdata_b|' recovery.wipe
   magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/recovery.wipe recovery.wipe"
@@ -357,6 +378,14 @@ if [ "$layout" != "stock" ]; then
   fi
   magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/twrp.fstab twrp.fstab"
 fi
+if [ "$layout" == "stocksd" ]; then
+  magiskboot cpio ramdisk-recovery.cpio "extract etc/twrp.fstab twrp.fstab"
+  sed -i "\|^/data|a/stocksd\t\t$typed\t/dev/block/bootdevice/by-name/stocksd\t\t\t\t\tflags=display=\"StockSD\";wipeingui;storage" twrp.fstab
+  magiskboot cpio ramdisk-recovery.cpio "mkdir 0771 stocksd"
+  sed -i -e "s/<type>/$typed/" -e 's/<flags>/rw,noatime,nosuid,nodev,discard,barrier=1,noauto_da_alloc/' init.mount_stocksd.sh
+  magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/twrp.fstab twrp.fstab"
+fi
+
 # Add missing useful binaries
 for i in magiskboot magiskpolicy sgdisk; do
   magiskboot cpio ramdisk-recovery.cpio "exists /sbin/$i" || magiskboot cpio ramdisk-recovery.cpio "add 0755 sbin/$i $tools/$i"
@@ -396,35 +425,23 @@ for slot_select in active inactive; do
     magiskboot cpio ramdisk.cpio "add 0644 etc/twrp.fstab twrp.fstab"
     rm -f twrp.fstab
   fi
- 
-  # Possibly using 2SI, export env var
-  magiskboot cpio ramdisk.cpio test
-  STATUS=$?
-  [ $((STATUS & 8)) -ne 0 ] && export TWOSTAGEINIT=true
-
+   
   # Mount other needed partitions
   $KEEPVERITY && flags="ro" || flags="rw"
   mount -o $flags "/dev/block/bootdevice/by-name/system$slot" /system
   mount --move /system /system_root
   mount -o bind /system_root/system /system
-	mount -o $flags "/dev/block/bootdevice/by-name/vendor$slot" /vendor
+  mount -o $flags "/dev/block/bootdevice/by-name/vendor$slot" /vendor
   mount -o $flags "/dev/block/bootdevice/by-name/odm$slot" /odm
   mount -o rw /dev/block/bootdevice/by-name/persist /persist
 
   # Check for installed Android 10 or lower ROM
   if [ -f /system/build.prop ] && [ -f /system_root/init.rc ]; then
     if $mountdata; then
-      [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
+       [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }	   
     fi
 
-    if [ -f /tmp/init.mount_androiddata.sh ]; then 
-	ui_print " Mounting Android Data to commondata partition"
-	cp -f /tmp/init.mount_androiddata.sh  /data/adb/service.d/
-    set_perm /data/adb/service.d/init.mount_androiddata.sh 0 2000 0755 u:object_r:shell_exec:s0
-    fi 
-
     if ! $KEEPVERITY; then
-      rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
      
       # Get location of sepolicy
       $magisk && context=magisk || context=shell
@@ -467,6 +484,17 @@ for slot_select in active inactive; do
 		  cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
+		
+		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
+          ui_print "  Installing mount script for SDCARD Partition"
+          magiskpolicy --load $file --save $file "allow init media_rw_data_file dir mounton" #"allow fsck block_device blk_file { ioctl read write getattr lock append map open }"
+          mkdir /system_root/stocksd 2>/dev/null
+          set_perm /system_root/stocksd media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
+          cp -f $tmp/init.mount_stocksd.sh /system_root/init.mount_stocksd.sh
+          set_perm /system_root/init.mount_stocksd.sh  0 2000 0755 u:object_r:shell_exec:s0
+          cp -f /system_root/init.mount_stocksd.sh  /data/adb/service.d/
+          set_perm /data/adb/service.d/init.mount_stocksd.sh 0 2000 0755 u:object_r:shell_exec:s0
+        fi
       fi
 
       # Patch vendor fstabs
@@ -476,8 +504,6 @@ for slot_select in active inactive; do
 
     # Un/Install Magisk, patch verity otherwise since we're likely modifying system
     if $magisk; then
-	cp -rf $tmp/magiskcommon_a10/* $tmp/magiskcommon/
-	cp -rf $tmp/tools_a10/* $tmp/tools
     . magisk.sh
     else
       ui_print "  Patching ramdisk"
@@ -493,8 +519,6 @@ for slot_select in active inactive; do
     binary_patches
     patch_dtb_partitions
     $magiskdata && run_migrations
-	cp -f $tmp/tools/bootctl  /system_root/system/bin/
-    set_perm /system_root/system/bin/bootctl 0 2000 0755 u:object_r:shell_exec:s0
   else
   
  # Check for installed Android 11 ROM
@@ -504,14 +528,7 @@ for slot_select in active inactive; do
       [ "$layout" == "stock" ] && mount -t $type "/dev/block/bootdevice/by-name/userdata" /data || { mount -t $type "/dev/block/bootdevice/by-name/userdata$slot" /data || mountdata=false; }
     fi
 
-    if [ -f /tmp/init.mount_androiddata.sh ]; then 
-	ui_print " Mounting Android Data to commondata partition"
-	cp -f /tmp/init.mount_androiddata.sh  /data/adb/service.d/
-    set_perm /data/adb/service.d/init.mount_androiddata.sh 0 2000 0755 u:object_r:shell_exec:s0
-    fi 
-
     if ! $KEEPVERITY; then
-      rm -rf /system_root/datacommon /system_root/init.mount_datacommon.sh /system_root/init.locksettings_dualboot.sh
 	  
       # Get location of sepolicy
       $magisk && context=magisk || context=shell
@@ -554,6 +571,17 @@ for slot_select in active inactive; do
 	      cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 	      set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
+		
+		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
+          ui_print "  Installing mount script for SDCARD Partition"
+          magiskpolicy --load $file --save $file "allow init media_rw_data_file dir mounton" #"allow fsck block_device blk_file { ioctl read write getattr lock append map open }"
+          mkdir /system_root/stocksd 2>/dev/null
+          set_perm /system_root/stocksd media_rw media_rw 0771 u:object_r:media_rw_data_file:s0
+          cp -f $tmp/init.mount_stocksd.sh /system_root/init.mount_stocksd.sh
+          set_perm /system_root/init.mount_stocksd.sh  0 2000 0755 u:object_r:shell_exec:s0
+          cp -f /system_root/init.mount_stocksd.sh  /data/adb/service.d/
+          set_perm /data/adb/service.d/init.mount_stocksd.sh 0 2000 0755 u:object_r:shell_exec:s0
+        fi
       fi
 
       # Patch vendor fstabs
@@ -563,9 +591,6 @@ for slot_select in active inactive; do
 
     # Un/Install Magisk, patch verity otherwise since we're likely modifying system
     if $magisk; then
-	ui_print "  Android 11 ROM. Magisk Canary 20422 will be installed." 
-	cp -rf $tmp/magiskcommon_a11/* $tmp/magiskcommon/
-	cp -rf $tmp/tools_a11/* $tmp/tools
 	. magisk.sh
     else
      ui_print "  Patching ramdisk"
@@ -582,8 +607,6 @@ for slot_select in active inactive; do
     binary_patches
     patch_dtb_partitions
     $magiskdata && run_migrations
-	cp -f $tmp/tools/bootctl  /system_root/system/bin/
-    set_perm /system_root/system/bin/bootctl 0 2000 0755 u:object_r:shell_exec:s0  
  
  if ! [ -f /system/build.prop ]; then 
  
@@ -619,8 +642,11 @@ rm -rf /dev/tmp
 
 ui_print " "
 ui_print "- Done installing Dualboot TWRP"
+ui_print "  Please reboot to recovery!"
 ui_print " "
 if [ "$layout" == "stock" ]; then
+  $magisk || ui_print "*** NOTE: You are now unrooted! ***"
+elif [ "$layout" == "stocksd" ]; then
   $magisk || ui_print "*** NOTE: You are now unrooted! ***"
 else
   $magiska || ui_print "*** NOTE: Slot A is now unrooted! ***"

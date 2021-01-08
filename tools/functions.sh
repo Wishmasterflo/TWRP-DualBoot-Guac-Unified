@@ -30,16 +30,16 @@ unmountAllAndRefreshPartitions() {
 select_size() {
   ui_print " "
   ui_print "- Supported Partition Sizes for userdata:"
-  [ $totsize -gt 128 ] && local sizes="16, 32, 64, or 96 gb" || local sizes="16, 32, 40, or 45 gb"
+  [ $totsize -gt 128 ] && local sizes="16, 32, 64, or 96 GB" || local sizes="16, 32, 40, or 45 GB"
   ui_print "  $sizes"
   ui_print "  Common Data takes up whatever is left"
   sleep 1
   ui_print " "
   ui_print "  Choose Userdata Size:"
   for i in 16 32 40 45 64 96; do
-    [ "$sizes" == "or $i gb" ] && { size=$i; return 0; }
+    [ "$sizes" == "or $i GB" ] && { size=$i; return 0; }
     sizes="$(echo $sizes | sed -r "s/^$i, |^$i //g")"
-    ui_print "  Vol+ $i gb; Vol- $sizes"
+    ui_print "  Vol+ $i GB; Vol- $sizes"
     chooseport && { size=$i; return 0; }
     ui_print " "
   done
@@ -51,6 +51,8 @@ select_format() {
   ui_print "  Note that your kernel must be f2fs compatible"
   ui_print "  Vol+ Ext4 (Recommended), Vol- F2FS"
   if [ "$layout" == "stock" ]; then
+    chooseport && typea="ext4" || typea="f2fs"
+  elif [ "$layout" == "stocksd" ]; then
     chooseport && typea="ext4" || typea="f2fs"
   else
     ui_print " "
@@ -88,30 +90,65 @@ change_part() {
 }
 
 stock_userdata() {
-  if [ "$curlayout" != "stock" ]; then
-    userdata_b_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_b)
-    userdata_b_partnum=$(echo "$userdata_b_partline" | awk '{ print $1 }')
-
-    if [ "$curlayout" == "a/b/c" ]; then
-      userdata_c_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata2')
+  if [ "$curlayout" == "a/b" ]; then
+      userdata_a_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata_a')
+      userdata_a_partnum=$(echo "$userdata_a_partline" | awk '{ print $1 }')
+      userdata_a_partend=$(echo "$userdata_a_partline" | awk '{ print $3 }')
+      userdata_b_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_b)
+      userdata_b_partnum=$(echo "$userdata_b_partline" | awk '{ print $1 }')
+	  userdata_b_partend=$(echo "$userdata_b_partline" | awk '{ print $3 }')
+	  change_part delete $userdata_a_partnum
+	  change_part delete $userdata_b_partnum
+	  userdata_partend=$userdata_b_partend
+      change_part new $userdata_partnum:$userdata_partstart:$userdata_partend
+  fi	  
+  if [ "$curlayout" == "stocksd" ]; then
+      userdata_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata')
+      userdata_partnum=$(echo "$userdata_partline" | awk '{ print $1 }')
+      userdata_partend=$(echo "$userdata_partline" | awk '{ print $3 }')
+      userdata_stocksd_partline=$(sgdisk --print /dev/block/sda | grep -i 'stocksd')
+      userdata_stocksd_partnum=$(echo "$userdata_stocksd_partline" | awk '{ print $1 }')
+      userdata_stocksd_partend=$(echo "$userdata_stocksd_partline" | awk '{ print $3 }')
+      change_part delete $userdata_stocksd_partnum
+      change_part delete $userdata_partnum
+	  userdata_partend=$userdata_stocksd_partend
+      change_part new $userdata_partnum:$userdata_partstart:$userdata_partend    	  
+   fi  
+   if [ "$curlayout" == "a/b/c" ]; then
+      userdata_a_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata_a')
+      userdata_a_partnum=$(echo "$userdata_a_partline" | awk '{ print $1 }')
+      userdata_a_partend=$(echo "$userdata_a_partline" | awk '{ print $3 }')
+      userdata_b_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_b)
+      userdata_b_partnum=$(echo "$userdata_b_partline" | awk '{ print $1 }')
+	  userdata_b_partend=$(echo "$userdata_b_partline" | awk '{ print $3 }')
+	  userdata_c_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata2')
       userdata_c_partnum=$(echo "$userdata_c_partline" | awk '{ print $1 }')
       userdata_c_partend=$(echo "$userdata_c_partline" | awk '{ print $3 }')
-      change_part delete $userdata_c_partnum
-    else
-      userdata_c_partend=$(echo "$userdata_b_partline" | awk '{ print $3 }')
+      change_part delete $userdata_a_partnum
+	  change_part delete $userdata_b_partnum   
+      userdata_partend=$userdata_c_partend
+	  change_part delete $userdata_c_partnum
+	  change_part new $userdata_partnum:$userdata_partstart:$userdata_partend
     fi
-
-    change_part delete $userdata_b_partnum
-    change_part delete $userdata_partnum
-    change_part new $userdata_partnum:$userdata_partstart:$userdata_c_partend
-    # Update this value
-    userdata_partend=$userdata_c_partend
-  fi
    change_part change-name $userdata_partnum:userdata
 }
 
 slot_userdata() {
-	if [ "$layout" == "a/b/c" ]; then
+	if [ "$layout" == "stocksd" ]; then
+    typea="ext4"
+	typed="ext4"
+    userdata_length=`echo $((userdata_partend-userdata_partstart))`
+    userdata_new=`echo $((userdata_length / 3))`
+    userdata_new_partend=`echo $((userdata_partstart+userdata_new))`
+    userdata_stocksd_partstart=`echo $((userdata_new_partend+1))`
+    userdata_stocksd_partnum=`echo $((userdata_partnum+1))`
+    change_part delete $userdata_partnum
+    change_part new $userdata_partnum:$userdata_partstart:$userdata_new_partend
+    change_part change-name $userdata_partnum:userdata
+    change_part new $userdata_stocksd_partnum:$userdata_stocksd_partstart:$userdata_partend
+    change_part change-name $userdata_stocksd_partnum:stocksd
+	
+	elif [ "$layout" == "a/b/c" ]; then
 		# Calculate size for $size partition with 4k logical sector size
     userdata_newpartsize=$((size * 1024 * 1024 / 4))
     userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
@@ -122,22 +159,30 @@ slot_userdata() {
 	
     userdata_c_partstart=`echo $((userdata_b_partend+1))`
     userdata_c_partnum=`echo $((userdata_b_partnum+1))`
+	
+	change_part delete $userdata_partnum
+  	change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
+    change_part change-name $userdata_partnum:userdata_a
+	change_part new $userdata_b_partnum:$userdata_b_partstart:$userdata_b_partend
+    change_part change-name $userdata_b_partnum:userdata_b
+  
 	else
 		# Cut it in half
 	userdata_length=`echo $((userdata_partend-userdata_partstart))`
-    userdata_newpartsize=`echo $(($(userdata_length) / 2))`
+    userdata_newpartsize=`echo $((userdata_length / 2))`
 	userdata_a_partend=`echo $((userdata_partstart+userdata_newpartsize))`
 
     userdata_b_partstart=`echo $((userdata_a_partend+1))`
     userdata_b_partend=$userdata_partend
     userdata_b_partnum=`echo $((userdata_partnum+1))`
-
-	fi
-  change_part delete $userdata_partnum
+	
+	change_part delete $userdata_partnum
   	change_part new $userdata_partnum:$userdata_partstart:$userdata_a_partend 
-  change_part change-name $userdata_partnum:userdata_a
+    change_part change-name $userdata_partnum:userdata_a
 	change_part new $userdata_b_partnum:$userdata_b_partstart:$userdata_b_partend
-  change_part change-name $userdata_b_partnum:userdata_b
+    change_part change-name $userdata_b_partnum:userdata_b
+    fi
+
 	if [ "$layout" == "a/b/c" ]; then
     change_part new $userdata_c_partnum:$userdata_c_partstart:$userdata_partend
     change_part change-name $userdata_c_partnum:userdata2
@@ -146,14 +191,18 @@ slot_userdata() {
 	sleep 0.5
 	ui_print "  Formatting new userdata partitions"
 	change_part format $userdata_partnum $typea
-	change_part format $userdata_b_partnum $typeb
+  [ "$layout" == "stocksd" ] && change_part format $userdata_stocksd_partnum $typed
+  [ "$layout" == "a/b" ] && change_part format $userdata_b_partnum $typeb
+  [ "$layout" == "a/b/c" ] && change_part format $userdata_b_partnum $typeb
   [ "$layout" == "a/b/c" ] && change_part format $userdata_c_partnum $typec
   ui_print "  Userdata has been partitioned to $layout"
 }
 
 repartition_userdata() {
   ui_print " "
-	if [ "$curlayout" == "stock" ]; then
+   if [ "$curlayout" == "stocksd" ]; then
+        userdata_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata')	
+   elif [ "$curlayout" == "stock" ]; then
 		userdata_partline=$(sgdisk --print /dev/block/sda | grep -i 'userdata$')
   else
 		userdata_partline=$(sgdisk --print /dev/block/sda | grep -i userdata_a)

@@ -2,6 +2,13 @@
 Changelog
 ---------
 
+01/08/2021 - 3.5.0-9 v4.1
+- Cleaned up stuff which is not needed anymore
+- Fixed bugs that were existing in the repartitioning part
+- Updated with official TWRP 3.5.0-9 and added black Theme to it
+- Added option to create a seperate partition called SDCARD when on Stock Layout
+
+
 12/29/2020 - 3.4.0-0 v4
 - Updated with Magisk 21.2
 - Removed Magisk Canary 20422 since Magisk 21.2 is now working with TWRP and Android 11
