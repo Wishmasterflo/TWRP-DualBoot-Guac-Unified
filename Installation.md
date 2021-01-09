@@ -1,6 +1,7 @@
 
 Flashing instructions:
 * Backup all your data since this process will repartition your phone and wipe all your data!
+* You should be on the latest OOS Version before proceeding
 * Remove PIN/password to have your phone unencrypted before flashing the Dualboot-TWRP!!
 * Boot into your already installed TWRP/recovery (or just fastboot boot the TWRP.IMG for your Oneplus 6 phone)
 * For first time flashing or if you want to repartition from A/B/C to Stock or StockSD, or the other way around you need to flash the Dualboot-TWRP from /tmp or USB Storage!
