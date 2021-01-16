@@ -5,8 +5,8 @@
 #
 ############################################
 
-MAGISK_VER="21.2"
-MAGISK_VER_CODE=21200
+MAGISK_VER="21.3"
+MAGISK_VER_CODE=21300
 
 ###################
 # Helper Functions
@@ -609,7 +609,7 @@ copy_sepolicy_rules() {
   local active_dir=$(magisk --path)/.magisk/mirror/sepolicy.rules
   if [ -e $active_dir ]; then
     RULESDIR=$(readlink -f $active_dir)
-  elif [ -d /data/unencrypted ] && ! grep ' /data ' /proc/mounts | grep -q 'dm-'; then
+  elif [ -d /data/unencrypted ] && ! grep ' /data ' /proc/mounts | grep -qE 'dm-|f2fs'; then
     RULESDIR=/data/unencrypted/magisk
   elif grep -q ' /cache ' /proc/mounts; then
     RULESDIR=/cache/magisk

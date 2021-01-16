@@ -365,7 +365,7 @@ fi
 ui_print "- Beginning install"
 
 # Patch TWRP if needed for slot userdata, patch commondata mount script and StockSD mount script
-if [ "$layout" == "a/b" ]; then
+if [ "$layout" != "stock" ]; then
   magiskboot cpio ramdisk-recovery.cpio "extract etc/recovery.wipe recovery.wipe"
   sed -i 's|^/dev/block/bootdevice/by-name/userdata$|/dev/block/bootdevice/by-name/userdata_a\n/dev/block/bootdevice/by-name/userdata_b|' recovery.wipe
   magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/recovery.wipe recovery.wipe"
@@ -376,13 +376,11 @@ if [ "$layout" == "a/b" ]; then
     magiskboot cpio ramdisk-recovery.cpio "mkdir 0771 datacommon"
     [ "$typec" == "f2fs" ] && sed -i -e "s/<type>/$typec/" -e 's/<flags>/rw,noatime,nosuid,nodev,discard,fsync_mode=nobarrier/' init.mount_datacommon.sh || sed -i -e "s/<type>/$typec/" -e 's/<flags>/rw,noatime,nosuid,nodev,discard,barrier=1,noauto_da_alloc/' init.mount_datacommon.sh
   fi
-  magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/twrp.fstab twrp.fstab"
-fi
-if [ "$layout" == "stocksd" ]; then
-  magiskboot cpio ramdisk-recovery.cpio "extract etc/twrp.fstab twrp.fstab"
-  sed -i "\|^/data|a/stocksd\t\t$typed\t/dev/block/bootdevice/by-name/stocksd\t\t\t\t\tflags=display=\"StockSD\";wipeingui;storage" twrp.fstab
+  if [ "$layout" == "stocksd" ]; then
+  sed -i "\|^/data|a/stocksd\t\text4\t/dev/block/bootdevice/by-name/stocksd\t\t\t\t\tflags=display=\"StockSD\";wipeingui;storage" twrp.fstab
   magiskboot cpio ramdisk-recovery.cpio "mkdir 0771 stocksd"
-  sed -i -e "s/<type>/$typed/" -e 's/<flags>/rw,noatime,nosuid,nodev,discard,barrier=1,noauto_da_alloc/' init.mount_stocksd.sh
+  sed -i -e "s/<type>/ext4/" -e 's/<flags>/rw,noatime,nosuid,nodev,discard,barrier=1,noauto_da_alloc/' init.mount_stocksd.sh
+  fi
   magiskboot cpio ramdisk-recovery.cpio "add 0644 etc/twrp.fstab twrp.fstab"
 fi
 
