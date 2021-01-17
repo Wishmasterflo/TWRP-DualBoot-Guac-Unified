@@ -7,6 +7,9 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6 series now.
 
 ## Changelog
+* 01/17/2021 - 3.5.0-9 v4.3
+  * Updated with Magisk 21.4
+
 * 01/16/2021 - 3.5.0-9 v4.2
   * Updated with Magisk 21.3
 

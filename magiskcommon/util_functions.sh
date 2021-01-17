@@ -5,8 +5,8 @@
 #
 ############################################
 
-MAGISK_VER="21.3"
-MAGISK_VER_CODE=21300
+MAGISK_VER="21.4"
+MAGISK_VER_CODE=21400
 
 ###################
 # Helper Functions

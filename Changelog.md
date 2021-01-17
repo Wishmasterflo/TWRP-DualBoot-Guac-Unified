@@ -2,8 +2,13 @@
 Changelog
 ---------
 
+01/17/2021 - 3.5.0-9 v4.3
+- Updated with Magisk 21.4
+
+
 01/16/2021 - 3.5.0-9 v4.2
 - Updated with Magisk 21.3
+
 
 01/08/2021 - 3.5.0-9 v4.1
 - Cleaned up stuff which is not needed anymore
