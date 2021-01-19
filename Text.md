@@ -12,7 +12,8 @@ The size of each data partition A and B (16 GB or 24 GB for the 64 GB devices, 1
 
 If you want to disable encryption
 
-Which file system to have on the slot and Common Data partition (F2FS or EXT4). The StockSD partition will get created as ext4 partition
+Which file system to have on the slot and Common Data partition (F2FS or EXT4). The StockSD partition will get created as EXT4 partition
+Info: You just use EXT4 as file system in the first try! F2FS is not supported in all ROMS/Kernels!!
 
 If you want to install Magisk (this will Install the latest Version of Magisk)
 You need to choose to install Magisk from the Dualboot-TWRP while flashing if you want to use the Common Data or StockSD partition. The way I have implemented this now needs to use Magisk!
