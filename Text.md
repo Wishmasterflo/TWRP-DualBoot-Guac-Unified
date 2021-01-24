@@ -43,8 +43,14 @@ The "ab" are the slots and these in small letters like a b means that that optio
 
 When having "AB" in big letters means it will get installed/activated on that slot.
 
+Examples like this:
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.ab-su.ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on both slots
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.Ab-su.ab.zip" - Fastmode enabled, Force encryption enabled on slot A and disabled on slot B, Magisk will not be installed on both slots
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.AB-su.ab.zip" - Fastmode enabled, Force encryption enabled on both slots, Magisk will not be installed on both slots
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.ab-su.Ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on slot A but not on slot B
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.ab-su.aB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on slot A but will be installed on slot B
+"Dualboot_TWRP_OP6t_fajita_v4_3-fast-fec.ab-su.AB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on both slots
 
-When having "fec.Ab-su.AB" Force encryption will be enabled on slot A but not on slot b. And Magisk will be installed on both A and B.
 
 
 There is also a "failsafe" mode which can be activated when adding "failsafe" to the filename.
