@@ -2,6 +2,10 @@
 Changelog
 ---------
 
+02/07/2021 - 3.5.0-9 v4.4
+- Fixed bug which caused that the quickmode options were not working
+
+
 01/17/2021 - 3.5.0-9 v4.3
 - Updated with Magisk 21.4
 

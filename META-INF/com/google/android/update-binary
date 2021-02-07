@@ -201,7 +201,6 @@ esac
 if [ "$QUICKMODE" = "true" ]; then
 	ui_print " "
 	ui_print " Quickmode enabled, not asking questions... "
-	$NOCONFIRM || ui_print " Checking for confirmation enabled/disabled..."
 	[ "$(echo "$ZIPFILE" | cut -d / -f1-2)" == "/data" ] && mountdata=false
 	layout=$curlayout
 	#never format in quickmode
@@ -252,7 +251,6 @@ if [ -z "$layout" ]; then
 	  ui_print "  Vol+ yes, Vol- no"
 	  chooseport && layout="stocksd" || layout="stock" 
 	  fi
-    fi
     select_format
   fi
 fi
@@ -306,6 +304,8 @@ if ($magiska || $magiskb) && ! $mountdata; then
   ui_print "  You'll need to install the apk normally"
   ui_print "  And it'll prompt you to install the rest"
   sleep 2
+fi
+
 fi
 
 ui_print " "
