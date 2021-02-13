@@ -4,27 +4,25 @@ Flashing instructions:
 * You should be on the latest OOS Version before proceeding
 * Remove PIN/password to have your phone unencrypted before flashing the Dualboot-TWRP!!
 * Boot into your already installed TWRP/recovery (or just fastboot boot the TWRP.IMG for your Oneplus 6 phone)
+* Flash the Dualboot-TWRP.ZIP and go through all the options while flashing!
+  You can read more details about that here: https://github.com/Wishmasterflo/TWRP-DualBoot-Guac-Unified/blob/master/Text.md
 * For first time flashing or if you want to repartition from A/B/C to Stock or StockSD, or the other way around you need to flash the Dualboot-TWRP from /tmp or USB Storage!
 * (it will copy itself to /tmp if you try to flash it from somewhere else and want to repartition)
 * Don't ADB sideload the Dualboot TWRP. That will just cause errors!
 * After all repartition processes do a reboot to TWRP directly afterwards to apply all changes and get the partitions mounted correctly
   (after some repartition processes you see an error that /data or something else could not be mounted. That is OK. Just do a reboot to TWRP again to get all changes applied!)
-* Reboot to recovery (TWRP) and select the slot you DO NOT want the ROM installed to (the ROM will always flash to the opposite slot!)
-* Flash the Dualboot-TWRP.ZIP and go through all the options while flashing!
-  You can read more details about that here: https://github.com/Wishmasterflo/TWRP-DualBoot-Guac-Unified/blob/master/Text.md
 * reboot to recovery
 * When you connect your phone now to your Computer it should show the Internal Storage from that slot as well as the Common Storage (if you have chosen the A/B/C Layout or StockSD if you use the StockSD Layout)
 * Copy the ROMS etc you want to flash to the Common Storage, StockSD, or Internal Storage
+* Reboot to recovery (TWRP) and select the slot you DO NOT want the ROM installed to (the ROM will always flash to the opposite slot!)
 * From TWRP, Install (select Common Storage, StockSD, or Internal Storage) and install the first ROM
 * When you are in Slot A and flash the ROM it will install to Slot B !!
   So keep in mind that the ROMS always flashes to the opposite slot.
 * Flash the Dualboot TWRP again (choose to keep your current Layout) (or flash your adjusted Dualboot-TWRP with quickmode options)
-* reboot to recovery
-* Switch to the other slot (if you were in Slot A before, switch to Slot B now)
+* reboot to recovery to switch to the other slot (if you were in Slot A before, switch to Slot B now)
 * Flash the ROM you want to have in the other slot
 * Flash the Dualboot-TWRP again (choose to keep your current Layout) (or flash your adjusted Dualboot-TWRP with quickmode options)
 * reboot to recovery
-* Switch to the other slot
 * Do a FORMAT Data on that slot!
 * Reboot to System
 * Now your ROM on that slot should boot up.
