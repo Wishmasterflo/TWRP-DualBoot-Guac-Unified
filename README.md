@@ -7,6 +7,10 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by user Zackptg5 and adjusted this to the Oneplus 6 series now.
 
 ## Changelog
+* 03/05/2021 - 3.5.0-9 v5
+  * Added Dualboot Companion app created by User Invernomut0
+  * small bugfixes and corrections
+
 * 02/07/2021 - 3.5.0-9 v4.4
   * Fixed bug which caused that the quickmode options were not working
 
@@ -76,10 +80,12 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 * Always make a Backup of all your Data before using this.
 * **YOU'VE BEEN WARNED - Use at your own risk**
 
-## Limitation
-* As of now it is only possible to set a PIN/password on OOS and not on any custom ROMs! 
-* I had no luck in getting that fixed. Seems that it is something device specific to our Oneplus 6 series causing that this is not working on any other ROM than OOS
-* since it was working on the DUALBOOT-TWRP for the Oneplus 7 where I took over this Project from in the beginnig.
+## Limitations / issues
+* As of now it is only possible to set a PIN/password on OOS and not on any custom ROM! 
+* I had no luck in getting that fixed. Seems that it is something device specific to our Oneplus 6 series causing that this is not working.
+* Also it seems that encryption is not really working correctly all the time so I recommened to stay unencrypted
+* When on Android 11 and have the Common Data (A/B/C) Layout and you do a reboot to System or Recovery the phone will "hang" on a black screen for like 1 minute before rebooting so just be patient here.
+* That happens when it do a dismount of the Common Data and it just takes long time until it finally continues
 
 ## Some other features/notes
 * Can choose between stock layout, a/b userdata, a/b/c userdata where 'c' is a common data partition that'll show up in both roms, or StockSD layout which will create a seperate partion on Stock layout
@@ -87,6 +93,8 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
 * Disables verity - fstabs are modified for dual boot and so this is a must unless you choose stock layout in which case it's optional
 * Option to disable forced encryption
 * Option to install magisk
+* From Version 5 onwards there is a Dualboot Companion app added which can be used to reboot to other slots System or Recovery and it even will integrate in the reboot options from Android 11
+* The Dualboot Companion app has also the ability to share apps Data between both ROMs (this is still in beta/test!) and to mount the other slots Data or System partition
 
 ## Common Data
 * If you choose a/b/c layout - you'll have a/b userdata, but you'll also get a 3rd userdata partition called 'Common Data'
@@ -108,9 +116,15 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
       Pictures
       ViPER4AndroidFX
       ```
-
+## Dualboot Companion app
+* From Version 5 onwards there is a Dualboot Companion app (made by User Invernomut0) added to the Dualboot TWRP which can be used to reboot to other slots System or Recovery and it even will integrate in the reboot options from Android 11
+* The Dualboot Companion app has also the ability to share apps Data between both ROMs (this is still in beta/test!) and to mount the other slots Data or System partition
+  * It will create a folder called "DualBoot" inside the SDCARD with folders for "SDcard_a" / "SDcard_b" and "System_a" / "System_b"
+  * If you are using the A/B/C Layout and have activated the "Share app" function inside the Companion app it will create a folder "SharedData" inside of your Commondata folder for the apps you selected to share the data throughout both ROMs with
+  * The app also shows additional information about the installed ROM Version, Android Version, and security Patch for each ROM
+  
 ## Flashing Instructions
-* You MUST be booted into TWRP already when flashing this zip.
+* You MUST be booted into TWRP already when flashing this Dualboot-TWRP.
 * Since this modifies data - the zip CANNOT be on sdcard or data at all UNLESS you do not want to repartition/format
   * If you flash from data, the zip will copy itself to /tmp and instruct you to flash it from there
 * Read through ALL the prompts - there's lots of options. 
@@ -121,24 +135,26 @@ I did a fork of the archived TWRP-Dualboot from the Oneplus 7 series done by use
   * Roms always flash to the opposite slot. Keep that in mind and you'll be fine
   * So don't take an OTA while booted - boot into twrp, switch slots, reboot into twrp, flash rom
 * Normal flash procedure:
-  * Boot into twrp
-  * reboot into twrp selecting slot you do NOT want rom installed to
-  * Flash rom
-  * Flash this zip
-  * Reboot into twrp
-  * Flash everything else
+  * Boot into TWRP (Dualboot-TWRP)
+  * Flash rom (this will flash to the opposite slot)
+  * Flash Dualboot-TWRP
+  * Reboot to recovery (TWRP)
+  * Flash everything else (GApps etc.)
 
 ## Help! I Can't Boot!
-* Usually this is because you switched roms without formatting data on that slot.
+* Usually this is because you switched roms without formatting data on that slot!
 
 
 ## Credits
 
+* [Zackptg5](https://github.com/Zackptg5/TWRP-DualBoot-Guac-Unified)
 * [Teamwin](https://github.com/TeamWin)
 * [Mauronofrio](https://github.com/mauronofrio/android_device_oneplus_guacamole_unified_TWRP)
-* [CosmicDan](https://github.com/CosmicDan-Android/android_system_update_engine_tissotmanager-mod)
 * [TopJohnWu](https://github.com/topjohnwu/Magisk)
-* [Zackptg5](https://github.com/Zackptg5/TWRP-DualBoot-Guac-Unified)
+* [Ae3NerdGod] (https://github.com/Ae3NerdGod)
+* [Invernomut0] (https://github.com/Invernomut0)
+* [acuicultor] (https://github.com/acuicultor)
+* [Morphine1] (https://github.com/morphine1)
 
 ## License
 

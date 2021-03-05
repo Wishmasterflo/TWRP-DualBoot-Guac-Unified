@@ -2,6 +2,11 @@
 Changelog
 ---------
 
+03/05/2021 - 3.5.0-9 v5
+- Added Dualboot Companion app created by User Invernomut0
+- small bugfixes and corrections
+
+
 02/07/2021 - 3.5.0-9 v4.4
 - Fixed bug which caused that the quickmode options were not working
 

@@ -2,6 +2,7 @@ ui_print "  Installing Magisk $(grep_prop MAGISK_VER $tmp/magiskcommon/util_func
 MAGISKBIN=/data/adb/magisk
 $mountdata && magiskdata=true || magiskdata=false
 [ "$layout" == "stock" ] && [ "$slot_select" == "inactive" ] && magiskdata=false
+[ "$layout" == "stocksd" ] && [ "$slot_select" == "inactive" ] && magiskdata=false
 
 # Copy required files
 if $magiskdata; then

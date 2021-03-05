@@ -269,8 +269,8 @@ patch_fstabs() {
 		sed -i "/name\/userdata / s/wait,slotselect/wait/" $i
     while true; do
       [ "$(tail -n1 $i)" ] && { echo >> $i; break; } || sed -i '$d' $i
-    done
-    [ "$layout" == "stock" ] || sed -i "/name\/userdata / s/wait,/wait,slotselect,/" $i
+    done    
+	[ "$layout" == "stock" ] || sed -i "/name\/userdata / s/wait,/wait,slotselect,/" $i
 		chcon $perm $i
 	done
 }

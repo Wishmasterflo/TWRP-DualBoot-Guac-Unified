@@ -1,6 +1,7 @@
 #!/sbin/sh
 # TWRP A/B Installer Backend
 # by Wishmasterflo. Adopted from Zackptg5, and adjusted to the Oneplus 6 series with new Features and Updates
+# DualBootCompanion app by invernomut0 
 
 # Functions needed early
 ui_print() { $BOOTMODE && echo "$1" || echo -e "ui_print $1\nui_print" >> $OUTFD; }
@@ -29,7 +30,7 @@ unset LD_LIBRARY_PATH LD_PRELOAD LD_CONFIG_FILE
 # detect Magisk Manager/booted flashing
 ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false
 $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true
-$BOOTMODE && abort "! Flash in TWRP - use img by mauronofrio if first install!"
+$BOOTMODE && abort "! Flash in TWRP - use TWRP.img by mauronofrio if first install!"
 
 ui_print "    #                              /" 
 ui_print "     #                            /"
@@ -43,9 +44,10 @@ ui_print "#####################//////////////////////"
 ui_print "###########################################"
 ui_print "#         TWRP + Magisk Installer         #"
 ui_print "#            with a/b userdata            #"
-ui_print "#               by Zackptg5               #"
-ui_print "#         adjusted by Wishmasterflo       #"
+ui_print "#             by Wishmasterflo            #"
 ui_print "#            for the Oneplus 6t           #"
+ui_print "###########################################"
+ui_print "#  DualBootCompanion app by invernomut0   #"
 ui_print "###########################################"
 ui_print " "
 
@@ -68,7 +70,7 @@ cd $tmp
 # Device check
 supported=false
 ui_print "- Checking device compatibility"
-for i in OnePlus6t fajita; do
+for i in Oneplus6t fajita; do
   for prop in "ro.product.device" "ro.build.product" "ro.product.vendor.device" "ro.vendor.product.device" "ro.omni.device"; do
     if [ "$(getprop $prop)" == "$i" ]; then
       ui_print "  Supported Device Detected!"
@@ -284,7 +286,6 @@ fi
 
 ui_print " "
 ui_print "- Install Magisk?"
-[ "$layout" == "a/b/c" ] && { ui_print "  Note that this may be needed for common data"; ui_print "   mounting on some roms like OOS"; ui_print " "; }
 ui_print "  Vol+ yes, Vol- no"
 if [ "$layout" == "stock" ]; then
   chooseport && magiska=true || magiska=false
@@ -354,11 +355,11 @@ else
   fi
 fi
 
-sleep 1
+sleep 0.5
 ui_print " "
 if [ "$NOCONFIRM" != "true" ]; then
 ui_print "- Last Chance - Are you sure?"
-[ "$layout" != "$curlayout" ] && { ui_print "  All data including internal storage will be wiped"; sleep 1; }
+[ "$layout" != "$curlayout" ] && { ui_print "  All data including internal storage will be wiped"; sleep 0.5; }
 ui_print "  Vol+ yes, Vol- no (exit installer)"
 chooseport && ui_print " " || { ui_print " "; ui_print "Exiting installer!"; exit 0; }
 fi
@@ -481,6 +482,8 @@ for slot_select in active inactive; do
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
 		  cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
+		  cp -f $tmp/mount_shareddata.sh /system_root/mount_shareddata.sh
+		  set_perm /system_root/mount_shareddata.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
 		
 		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
@@ -519,7 +522,7 @@ for slot_select in active inactive; do
     $magiskdata && run_migrations
   else
   
- # Check for installed Android 11 ROM
+ # Check for installed Android 11 or above ROM
  if [ -f /system/etc/init/hw/init.rc ]; then
    ui_print "  Android 11 ROM detected!"   
    if $mountdata; then
@@ -568,8 +571,10 @@ for slot_select in active inactive; do
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
 	      cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 	      set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-        fi
-		
+		  cp -f $tmp/mount_shareddata.sh /system_root/mount_shareddata.sh
+		  set_perm /system_root/mount_shareddata.sh 0 2000 0755 u:object_r:shell_exec:s0
+		fi      	
+	
 		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
           ui_print "  Installing mount script for SDCARD Partition"
           magiskpolicy --load $file --save $file "allow init media_rw_data_file dir mounton" #"allow fsck block_device blk_file { ioctl read write getattr lock append map open }"
@@ -600,11 +605,11 @@ for slot_select in active inactive; do
      /system/addon.d/99-magisk.sh \
      /data/user*/*/*magisk* /data/app/*magisk* 2>/dev/null
     fi
-  fi
-  
+     
     binary_patches
     patch_dtb_partitions
     $magiskdata && run_migrations
+  fi
  
  if ! [ -f /system/build.prop ]; then 
  
@@ -613,14 +618,27 @@ for slot_select in active inactive; do
     ui_print "  Skipping non-boot img related functions!"
     ui_print "  Flash this zip again after installing OS"
     ui_print " "
-   fi 
- fi
+ fi 
+fi 
 
   # Repack
   ui_print "  Repacking boot img"
   magiskboot repack boot.img new-boot.img
   cat new-boot.img /dev/zero > $target$slot 2>/dev/null || true
   magiskboot cleanup
+  
+  # Install Dualboot Companion app, credits to invernomut0
+  if [ "$layout" != "stock" ] && [ "$layout" != "stocksd" ]; then
+  ui_print "  Copy bootctl to /data/adb/Dualboot"
+  [ -d /data/adb/Dualboot ] || mkdir /data/adb/Dualboot
+  cp -af $tools/bootctl /data/adb/DualBoot/
+  set_perm /data/adb/Dualboot/bootctl 0 0 0755 u:object_r:shell_exec:s0
+  ui_print "  Installing DualBootCompanion app"
+  rm -rf /system/app/DualBootCompanion/
+  mkdir -pv /system/app/DualBootCompanion
+  cp -af $tmp/tools/DualBootCompanion.apk /system/app/DualBootCompanion/
+  set_perm /system/app/DualBootCompanion/DualBootCompanion.apk 0 0 0644 u:object_r:system_file:s0
+  fi
   
   cd $tmp
   rm -rf boot

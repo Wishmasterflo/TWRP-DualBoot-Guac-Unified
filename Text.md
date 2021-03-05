@@ -13,15 +13,20 @@ The size of each data partition A and B (16 GB or 24 GB for the 64 GB devices, 1
 If you want to disable encryption
 
 Which file system to have on the slot and Common Data partition (F2FS or EXT4). The StockSD partition will get created as EXT4 partition
-Info: You just use EXT4 as file system in the first try! F2FS is not supported in all ROMS/Kernels!!
+Info: You should just use EXT4 as file system in the first try! F2FS is not supported in all ROMS/Kernels!!
 
 If you want to install Magisk (this will Install the latest Version of Magisk)
 You need to choose to install Magisk from the Dualboot-TWRP while flashing if you want to use the Common Data or StockSD partition. The way I have implemented this now needs to use Magisk!
 
+From Version 5 onwards there is a Dualboot Companion app (made by User Invernomut0) added which can be used to reboot to other slots System or Recovery and it even will integrate in the reboot options from Android 11
+The Dualboot Companion app has also the ability to share apps Data between both ROMs (this is still in beta/test!) and to mount the other slots Data or System partition
+It will create a folder called "DualBoot" inside the SDCARD with folders for "SDcard_a" / "SDcard_b" and "System_a" / "System_b"
+If you are using the A/B/C Layout and have activated the "Share app" function inside the Companion app it will create a folder "SharedData" inside of your Commondata folder for the apps you selected to share the data throughout both ROMs with
+The app also shows additional information about the installed ROM Version, Android Version, and security Patch for each ROM
 
 Dualboot-TWRP quickmode/fastmode options which can be provided directly through the Filename:
 
-Dualboot_TWRP_fajita_enchilada_v3-fast-fec.ab-su.ab.zip
+Dualboot_TWRP_fajita_enchilada_v5-fast-fec.ab-su.ab.zip
 
 
 This can be used when you need to re-flash TWRP after a ROM install so that you dont need to go through all the options again.
@@ -31,6 +36,8 @@ For the first install or you want to re-partition you need to flash it without c
 
 So the additional part "fast-fec.ab-su.ab" which is added to the filename is concluded like this:
 
+
+"warp" = Quickmode/fastmode without any confirmation
 
 "fast" or "quick" = Quickmode/fastmode which will just have one confirmation to flash the ZIP
 
@@ -44,12 +51,12 @@ The "ab" are the slots and these in small letters like a b means that that optio
 When having "AB" in big letters means it will get installed/activated on that slot.
 
 Examples like this:
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.ab-su.ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on both slots
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.Ab-su.ab.zip" - Fastmode enabled, Force encryption enabled on slot A and disabled on slot B, Magisk will not be installed on both slots
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.AB-su.ab.zip" - Fastmode enabled, Force encryption enabled on both slots, Magisk will not be installed on both slots
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.ab-su.Ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on slot A but not on slot B
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.ab-su.aB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on slot A but will be installed on slot B
-- "Dualboot_TWRP_OP6t_fajita_v4_3-fast-confirm.y-fec.ab-su.AB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on both slots
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.ab-su.ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on both slots
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.Ab-su.ab.zip" - Fastmode enabled, Force encryption enabled on slot A and disabled on slot B, Magisk will not be installed on both slots
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.AB-su.ab.zip" - Fastmode enabled, Force encryption enabled on both slots, Magisk will not be installed on both slots
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.ab-su.Ab.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on slot A but not on slot B
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.ab-su.aB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will not be installed on slot A but will be installed on slot B
+- "Dualboot_TWRP_OP6t_fajita_v5-warp-fec.ab-su.AB.zip" - Fastmode enabled, Force encryption disabled on both slots, Magisk will be installed on both slots
 
 
 
