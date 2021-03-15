@@ -2,6 +2,16 @@
 Changelog
 ---------
 
+03/15/2021 - 3.5.0-9 v5.1
+- Updated Dualboot Companion app to V2.8.5
+- Added Dualboot with OrangeFox Recovery R11.0
+- Added Dualboot Logo to OrangeFox Recovery
+- You can now choose which recovery you want to use with the Dualboot. TWRP or OrangeFox Recovery
+- Fixed bug in partition size details for 64GB Oneplus 6 devices
+- Fixed error when flashing a ROM in OrangeFox recovery
+- Fixed hanging/timeout when rebooting to System or Recovery on Android 11 (works only when using reboot function from inside the Dualboot Companion app)
+
+
 03/05/2021 - 3.5.0-9 v5
 - Added Dualboot Companion app created by User Invernomut0
 - small bugfixes and corrections

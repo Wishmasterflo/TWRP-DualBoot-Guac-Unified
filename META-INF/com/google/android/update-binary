@@ -482,8 +482,6 @@ for slot_select in active inactive; do
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
 		  cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 		  set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-		  cp -f $tmp/mount_shareddata.sh /system_root/mount_shareddata.sh
-		  set_perm /system_root/mount_shareddata.sh 0 2000 0755 u:object_r:shell_exec:s0
         fi
 		
 		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
@@ -571,8 +569,6 @@ for slot_select in active inactive; do
           set_perm /system_root/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
 	      cp -f /system_root/init.mount_datacommon.sh  /data/adb/service.d/
 	      set_perm /data/adb/service.d/init.mount_datacommon.sh 0 2000 0755 u:object_r:shell_exec:s0
-		  cp -f $tmp/mount_shareddata.sh /system_root/mount_shareddata.sh
-		  set_perm /system_root/mount_shareddata.sh 0 2000 0755 u:object_r:shell_exec:s0
 		fi      	
 	
 		if [ "$layout" == "stocksd" ] && [ -d /data/adb/service.d ]; then
