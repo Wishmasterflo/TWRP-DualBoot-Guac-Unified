@@ -1,6 +1,9 @@
 
 Changelog
 ---------
+03/18/2021 - 3.5.1-9 v5.2
+- Updated with TWRP 3.5.1-9 (black Themed)
+
 
 03/15/2021 - 3.5.0-9 v5.1
 - Updated Dualboot Companion app to V2.8.5
