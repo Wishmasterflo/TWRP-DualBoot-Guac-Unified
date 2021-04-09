@@ -1,6 +1,28 @@
 
 Changelog
 ---------
+04/09/2021 - 3.5.2-9 v5.3
+- Updated TWRP to 3.5.2-9 (black Themed)
+- Updated Dualboot Companion app to V2.8.9
+  DualBoot companion App V2.8.9 Changelog
+  - Added Splash screen at start
+  - Optimized starting time
+  - Added free space on CommonData
+  - Donate button 
+  - Update Russian translation
+  - bug fix here and there
+  - Fixed Shortcuts
+  - Fixed colours in updated box
+  - Updated Italian and Russian translation
+  - new logo
+  - new info section
+  - fixed crash using shortcuts
+  - shared app updated:
+  - Data Restore feature (it will copy the shared data back to /data/data and dismount the bind mount)
+  - Data Delete feature (it will delete the shared data and dismount the bind mount)
+  - Info about shared data if they are in place in shared directory
+
+
 03/18/2021 - 3.5.1-9 v5.2
 - Updated with TWRP 3.5.1-9 (black Themed)
 
