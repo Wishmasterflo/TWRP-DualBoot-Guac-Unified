@@ -7,6 +7,12 @@ Modified TWRP (Mauronofrio's build) and installer script for Oneplus 6 series th
 You can choose to install this Dualboot-mod with a blacked themed TWRP or with OrangeFox recovery.
 
 ## Changelog
+* 05/14/2021 - 3.5.2-9 v6
+  * Updated Dualboot Companion app to V2.9.1
+  DualBoot companion App V2.9.1 Changelog
+  * Optimized splash screen
+  * Fixed reboot time on Custom Rom in widget menu 
+
 * 04/09/2021 - 3.5.2-9 v5.3
   * Updated TWRP to 3.5.2-9 (black Themed)
   * Updated Dualboot Companion app to V2.8.9
